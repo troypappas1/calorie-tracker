@@ -28,8 +28,8 @@ def mock_estimate() -> dict:
         "proteinGrams": 38,
         "confidence": "Medium",
         "notes": [
-            "Mock result is enabled because no OpenAI API key is configured.",
-            "Serving size and sauces can change the estimate a lot.",
+            "Mock result — set ANTHROPIC_API_KEY in Vercel environment variables to enable real analysis.",
+            "Serving size and sauces can change the estimate significantly.",
         ],
         "source": "mock",
     }
@@ -49,65 +49,68 @@ def validate_image_data_url(image_data_url: str) -> None:
         raise HTTPException(status_code=400, detail="Image is too large. Keep uploads under 8 MB.")
 
 
-def analyze_with_openai(image_data_url: str, api_key: str) -> dict:
-    schema = {
-        "type": "object",
-        "properties": {
-            "title": {"type": "string"},
-            "calories": {"type": "integer"},
-            "proteinGrams": {"type": "integer"},
-            "confidence": {
-                "type": "string",
-                "enum": ["Low", "Medium", "High"],
-            },
-            "notes": {
-                "type": "array",
-                "items": {"type": "string"},
-            },
-        },
-        "required": ["title", "calories", "proteinGrams", "confidence", "notes"],
-        "additionalProperties": False,
-    }
+def extract_json(text: str) -> dict:
+    text = text.strip()
+    if text.startswith("```"):
+        lines = text.split("\n")
+        inner = lines[1:]
+        if inner and inner[-1].strip() == "```":
+            inner = inner[:-1]
+        text = "\n".join(inner).strip()
+    start = text.find("{")
+    end = text.rfind("}") + 1
+    if start == -1 or end == 0:
+        raise ValueError("No JSON object found")
+    return json.loads(text[start:end])
+
+
+def analyze_with_anthropic(image_data_url: str, api_key: str) -> dict:
+    header, encoded = image_data_url.split(",", 1)
+    media_type = header.split(":")[1].split(";")[0]
+    supported = {"image/jpeg", "image/png", "image/gif", "image/webp"}
+    if media_type not in supported:
+        media_type = "image/jpeg"
 
     payload = {
-        "model": "gpt-4.1-mini",
-        "input": [
+        "model": "claude-haiku-4-5-20251001",
+        "max_tokens": 512,
+        "messages": [
             {
                 "role": "user",
                 "content": [
                     {
-                        "type": "input_text",
-                        "text": (
-                            "Analyze this food image and estimate the likely dish name, "
-                            "calories, and protein in grams for the visible serving. "
-                            "Return JSON only. If the image is unclear, make your best "
-                            "estimate and lower confidence."
-                        ),
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": media_type,
+                            "data": encoded,
+                        },
                     },
                     {
-                        "type": "input_image",
-                        "image_url": image_data_url,
-                        "detail": "high",
+                        "type": "text",
+                        "text": (
+                            "You are a nutrition expert. Identify the food(s) in this image and "
+                            "estimate the dish name, calories (kcal), and protein (grams) for the "
+                            "visible serving size.\n\n"
+                            "Reply with ONLY a JSON object, no other text:\n"
+                            '{"title": "dish name", "calories": 550, "proteinGrams": 25, '
+                            '"confidence": "High", "notes": ["short helpful note"]}\n\n'
+                            "confidence must be Low, Medium, or High. "
+                            "notes should have 1-2 short observations about your estimate."
+                        ),
                     },
                 ],
             }
         ],
-        "text": {
-            "format": {
-                "type": "json_schema",
-                "name": "nutrition_estimate",
-                "strict": True,
-                "schema": schema,
-            }
-        },
     }
 
     request = urllib.request.Request(
-        "https://api.openai.com/v1/responses",
+        "https://api.anthropic.com/v1/messages",
         data=json.dumps(payload).encode("utf-8"),
         headers={
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}",
+            "x-api-key": api_key,
+            "anthropic-version": "2023-06-01",
         },
         method="POST",
     )
@@ -121,25 +124,25 @@ def analyze_with_openai(image_data_url: str, api_key: str) -> dict:
             parsed = json.loads(detail)
             message = parsed.get("error", {}).get("message", detail)
         except json.JSONDecodeError:
-            message = detail or f"OpenAI request failed with status {exc.code}."
+            message = detail or f"Anthropic request failed with status {exc.code}."
         raise HTTPException(status_code=502, detail=message) from exc
     except urllib.error.URLError as exc:
         raise HTTPException(
             status_code=502,
-            detail="Could not reach OpenAI. Check your internet connection.",
+            detail="Could not reach Anthropic. Check your internet connection.",
         ) from exc
 
     parsed_response = json.loads(response_body)
-    output_text = parsed_response.get("output_text")
-    if not output_text:
-        raise HTTPException(status_code=502, detail="OpenAI did not return structured nutrition output.")
+    content = parsed_response.get("content", [])
+    if not content or content[0].get("type") != "text":
+        raise HTTPException(status_code=502, detail="Anthropic did not return a text response.")
 
     try:
-        estimate = json.loads(output_text)
-    except json.JSONDecodeError as exc:
-        raise HTTPException(status_code=502, detail="OpenAI returned invalid nutrition JSON.") from exc
+        estimate = extract_json(content[0]["text"])
+    except (json.JSONDecodeError, ValueError) as exc:
+        raise HTTPException(status_code=502, detail="Could not parse nutrition data from response.") from exc
 
-    estimate["source"] = "openai"
+    estimate["source"] = "anthropic"
     return estimate
 
 
@@ -160,15 +163,15 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 def health() -> dict:
     return {
         "ok": True,
-        "provider": "openai" if os.getenv("OPENAI_API_KEY") else "mock",
+        "provider": "anthropic" if os.getenv("ANTHROPIC_API_KEY") else "mock",
     }
 
 
 @app.post("/api/analyze")
 def analyze(request: AnalyzeRequest) -> dict:
     validate_image_data_url(request.imageDataUrl)
-    api_key = os.getenv("OPENAI_API_KEY", "").strip()
-    return analyze_with_openai(request.imageDataUrl, api_key) if api_key else mock_estimate()
+    api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
+    return analyze_with_anthropic(request.imageDataUrl, api_key) if api_key else mock_estimate()
 
 
 @app.get("/")
@@ -179,8 +182,6 @@ def index() -> FileResponse:
 @app.get("/{file_path:path}")
 def frontend_files(file_path: str):
     candidate = (STATIC_DIR / file_path).resolve()
-
     if not str(candidate).startswith(str(STATIC_DIR.resolve())) or not candidate.exists() or not candidate.is_file():
         raise HTTPException(status_code=404, detail="Not found")
-
     return FileResponse(candidate)
