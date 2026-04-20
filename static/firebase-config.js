@@ -40,12 +40,12 @@
  */
 
 export const FIREBASE_CONFIG = {
-  apiKey:            "YOUR_API_KEY",
-  authDomain:        "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId:         "YOUR_PROJECT_ID",
-  storageBucket:     "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId:             "YOUR_APP_ID",
+  apiKey:            "AIzaSyC4QQK9pru0LhJ03vK0enb73MGyicl-q8s",
+  authDomain:        "calorie-tracker-42b2d.firebaseapp.com",
+  projectId:         "calorie-tracker-42b2d",
+  storageBucket:     "calorie-tracker-42b2d.firebasestorage.app",
+  messagingSenderId: "445126569630",
+  appId:             "1:445126569630:web:1c5e46b2af13d19a94158f",
 };
 
 // Set to false to disable Firebase entirely and use localStorage only
