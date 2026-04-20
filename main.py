@@ -35,6 +35,7 @@ NUTRITION_NOTES = (
 
 class AnalyzeRequest(BaseModel):
     imageDataUrl: str
+    description: str = ""  # optional brand / quality notes to assist photo
 
 
 class AnalyzeTextRequest(BaseModel):
@@ -131,15 +132,31 @@ def call_anthropic(payload: dict, api_key: str) -> dict:
         raise HTTPException(status_code=502, detail="Could not parse nutrition data from response.") from exc
 
 
-def analyze_with_anthropic(image_data_url: str, api_key: str) -> dict:
+def analyze_with_anthropic(image_data_url: str, api_key: str, description: str = "") -> dict:
     header, encoded = image_data_url.split(",", 1)
     media_type = header.split(":")[1].split(";")[0]
     if media_type not in {"image/jpeg", "image/png", "image/gif", "image/webp"}:
         media_type = "image/jpeg"
 
+    user_context = f'\n\nUser-provided context (use this to identify brand, restaurant, or quality): "{description.strip()}"' if description.strip() else ""
+
+    text_prompt = (
+        "You are a precise nutrition analyst. Study this food image carefully and follow these steps:\n\n"
+        "STEP 1 — IDENTIFY: List every food item, ingredient, sauce, condiment, and drink visible. "
+        "Note cooking methods (fried, grilled, etc.) that affect calorie content.\n\n"
+        "STEP 2 — PORTION SIZE: Estimate the actual portion size from visual cues. "
+        "If a human hand is visible, use it as calibration (adult palm ≈ 8–9 cm wide, 18–20 cm long). "
+        "Look for plates, utensils, or packaging. Do NOT default to a generic 'standard serving' — "
+        "estimate what is literally in the image. A large plate of pasta is not 200 calories.\n\n"
+        "STEP 3 — NUTRITION: Calculate based on identified ingredients and the actual portion. "
+        "Include all calorie sources: oils used in cooking, dressings, sauces, condiments."
+        f"{user_context}\n\n"
+        f"Reply with ONLY a JSON object:\n{NUTRITION_SCHEMA}\n\n{NUTRITION_NOTES}"
+    )
+
     payload = {
-        "model": "claude-haiku-4-5-20251001",
-        "max_tokens": 600,
+        "model": "claude-sonnet-4-6",
+        "max_tokens": 800,
         "messages": [
             {
                 "role": "user",
@@ -148,19 +165,7 @@ def analyze_with_anthropic(image_data_url: str, api_key: str) -> dict:
                         "type": "image",
                         "source": {"type": "base64", "media_type": media_type, "data": encoded},
                     },
-                    {
-                        "type": "text",
-                        "text": (
-                            "You are a nutrition expert. Identify the food(s) in this image and "
-                            "estimate the nutrition for the visible serving size.\n\n"
-                            "SIZE CALIBRATION: If a human hand is visible in the image, use it as "
-                            "a size reference — an average adult palm is about 8–9 cm wide and "
-                            "18–20 cm long. Use this to estimate the actual dimensions and portion "
-                            "size of the food more accurately. If no hand is visible, base your "
-                            "estimate on typical restaurant/home serving sizes.\n\n"
-                            f"Reply with ONLY a JSON object:\n{NUTRITION_SCHEMA}\n\n{NUTRITION_NOTES}"
-                        ),
-                    },
+                    {"type": "text", "text": text_prompt},
                 ],
             }
         ],
@@ -172,14 +177,16 @@ def analyze_with_anthropic(image_data_url: str, api_key: str) -> dict:
 
 def analyze_text_with_anthropic(description: str, api_key: str) -> dict:
     payload = {
-        "model": "claude-haiku-4-5-20251001",
-        "max_tokens": 600,
+        "model": "claude-sonnet-4-6",
+        "max_tokens": 800,
         "messages": [
             {
                 "role": "user",
                 "content": (
-                    f'You are a nutrition expert. The user describes a meal: "{description}"\n\n'
-                    "Estimate the nutrition for this meal. "
+                    f'You are a precise nutrition analyst. The user describes a meal: "{description}"\n\n'
+                    "If a specific restaurant or brand is mentioned, use their actual nutritional data. "
+                    "If a portion size is specified, use it exactly. "
+                    "Otherwise estimate a realistic typical serving — not an overly conservative one.\n\n"
                     f"Reply with ONLY a JSON object:\n{NUTRITION_SCHEMA}\n\n{NUTRITION_NOTES}"
                 ),
             }
@@ -215,7 +222,7 @@ def health() -> dict:
 def analyze(request: AnalyzeRequest) -> dict:
     validate_image_data_url(request.imageDataUrl)
     api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
-    return analyze_with_anthropic(request.imageDataUrl, api_key) if api_key else mock_estimate()
+    return analyze_with_anthropic(request.imageDataUrl, api_key, request.description) if api_key else mock_estimate()
 
 
 @app.post("/api/analyze-text")

@@ -9,10 +9,10 @@
 <body>
   <main class="page">
     <section class="hero">
-      <p class="eyebrow">Food Photo Nutrition</p>
-      <h1>Upload a meal photo and estimate calories.</h1>
+      <p class="eyebrow">Food Nutrition Tracker</p>
+      <h1>Track what you eat.</h1>
       <p class="lede">
-        Upload a food image or describe your meal, get a full nutrition breakdown, and log your meals for the day.
+        Photograph a meal for a full nutrition breakdown. Add a note to identify the brand or quality.
       </p>
     </section>
 
@@ -25,34 +25,29 @@
       <section class="panel uploader-panel">
         <div class="upload-copy">
           <h2>Add a meal</h2>
-          <p>Choose a photo or describe what you ate to get a nutrition estimate.</p>
+          <p>Upload a photo for the most accurate estimate.</p>
         </div>
 
-        <div class="sub-tab-bar">
-          <button class="sub-tab active" data-sub="photo">Photo</button>
-          <button class="sub-tab" data-sub="notes">Notes</button>
+        <label class="upload-zone" for="photo-input" id="upload-zone">
+          <input id="photo-input" type="file" accept="image/*">
+          <span class="upload-title">Choose a food photo</span>
+          <span class="upload-subtitle">Place your hand next to the food for a more accurate size estimate</span>
+        </label>
+
+        <div class="preview-shell" id="preview-shell" hidden>
+          <img id="preview-image" alt="Selected food preview">
         </div>
 
-        <div id="sub-photo" class="sub-tab-content">
-          <label class="upload-zone" for="photo-input" id="upload-zone">
-            <input id="photo-input" type="file" accept="image/*">
-            <span class="upload-title">Choose a food photo</span>
-            <span class="upload-subtitle">JPG, PNG, or HEIC screenshots converted by your browser</span>
+        <div class="notes-assist-wrap">
+          <label class="notes-assist-label" for="notes-input">
+            Brand or details
+            <span class="optional-tag">optional</span>
           </label>
-
-          <p class="hand-tip">&#9995; Place your hand next to the food for a more accurate size estimate.</p>
-
-          <div class="preview-shell" id="preview-shell" hidden>
-            <img id="preview-image" alt="Selected food preview">
-          </div>
-        </div>
-
-        <div id="sub-notes" class="sub-tab-content" hidden>
           <textarea
             id="notes-input"
             class="meal-textarea"
-            rows="5"
-            placeholder="Describe what you ate, e.g. &ldquo;A bowl of oatmeal with blueberries, honey, and almond milk&rdquo;"
+            rows="2"
+            placeholder="e.g. &ldquo;McDonald&rsquo;s Big Mac&rdquo;, &ldquo;Chipotle burrito bowl, extra rice&rdquo;, &ldquo;organic whole milk&rdquo;"
           ></textarea>
         </div>
 
@@ -61,7 +56,7 @@
           <button id="clear-button" class="secondary" disabled>Clear</button>
         </div>
 
-        <p class="status" id="status-text">Upload a photo or describe your meal to begin.</p>
+        <p class="status" id="status-text">Upload a photo to begin.</p>
       </section>
 
       <section class="panel result-panel" id="result-panel">
