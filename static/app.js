@@ -14,6 +14,8 @@ const fiberValue      = document.getElementById("fiber-value");
 const sugarValue      = document.getElementById("sugar-value");
 const sodiumValue     = document.getElementById("sodium-value");
 const confidenceValue = document.getElementById("confidence-value");
+const confidenceFill  = document.getElementById("confidence-fill");
+const confidenceMeter = document.getElementById("confidence-meter");
 const notesList       = document.getElementById("notes-list");
 const addToDayRow     = document.getElementById("add-to-day-row");
 const addToDayButton  = document.getElementById("add-to-day-button");
@@ -236,7 +238,7 @@ function renderResult(result) {
 
   renderScaled(result, 1);
 
-  confidenceValue.textContent = result.confidence;
+  setConfidence(result.confidence);
   providerPill.textContent = { anthropic: "Claude", mock: "Mock" }[result.source] || result.source;
 
   notesList.innerHTML = "";
@@ -268,7 +270,7 @@ function resetResult() {
   setVitaminBar("bar-calcium", "calcium-value", null);
   setVitaminBar("bar-iron",    "iron-value",    null);
 
-  confidenceValue.textContent = "--";
+  setConfidence(null);
   notesList.innerHTML = "<li>Results will appear here after analysis.</li>";
   sizeRow.hidden       = true;
   servingSizeRow.hidden = true;
@@ -278,3 +280,19 @@ function resetResult() {
 }
 
 function setStatus(msg) { statusText.textContent = msg; }
+
+function setConfidence(level) {
+  const levels = { Low: { pct: 22, cls: "cm-low" }, Medium: { pct: 57, cls: "cm-mid" }, High: { pct: 92, cls: "cm-high" } };
+  const cfg = levels[level];
+  if (!cfg) {
+    confidenceValue.textContent = "--";
+    confidenceFill.style.width  = "0%";
+    confidenceFill.className    = "cm-fill";
+    confidenceMeter.dataset.level = "";
+    return;
+  }
+  confidenceValue.textContent   = level;
+  confidenceFill.style.width    = `${cfg.pct}%`;
+  confidenceFill.className      = `cm-fill ${cfg.cls}`;
+  confidenceMeter.dataset.level = level.toLowerCase();
+}
