@@ -18,6 +18,9 @@
 		010000000000000000000009 /* NutritionResultCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000009 /* NutritionResultCard.swift */; };
 		01000000000000000000000A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02000000000000000000000A /* SettingsView.swift */; };
 		01000000000000000000000B /* CameraPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02000000000000000000000B /* CameraPicker.swift */; };
+		01000000000000000000000C /* ClaudeNutritionAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02000000000000000000000D /* ClaudeNutritionAnalyzer.swift */; };
+		01000000000000000000000D /* MealLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02000000000000000000000E /* MealLog.swift */; };
+		01000000000000000000000E /* MyDayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02000000000000000000000F /* MyDayView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +37,9 @@
 		02000000000000000000000A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		02000000000000000000000B /* CameraPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPicker.swift; sourceTree = "<group>"; };
 		02000000000000000000000C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		02000000000000000000000D /* ClaudeNutritionAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeNutritionAnalyzer.swift; sourceTree = "<group>"; };
+		02000000000000000000000E /* MealLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealLog.swift; sourceTree = "<group>"; };
+		02000000000000000000000F /* MyDayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyDayView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,6 +88,7 @@
 			children = (
 				020000000000000000000003 /* NutritionEstimate.swift */,
 				020000000000000000000004 /* AppConfiguration.swift */,
+				02000000000000000000000E /* MealLog.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -92,6 +99,7 @@
 				020000000000000000000005 /* NutritionAnalyzing.swift */,
 				020000000000000000000006 /* MockNutritionAnalyzer.swift */,
 				020000000000000000000007 /* OpenAINutritionAnalyzer.swift */,
+				02000000000000000000000D /* ClaudeNutritionAnalyzer.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -110,6 +118,7 @@
 				020000000000000000000009 /* NutritionResultCard.swift */,
 				02000000000000000000000A /* SettingsView.swift */,
 				02000000000000000000000B /* CameraPicker.swift */,
+				02000000000000000000000F /* MyDayView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -193,6 +202,9 @@
 				010000000000000000000009 /* NutritionResultCard.swift in Sources */,
 				01000000000000000000000A /* SettingsView.swift in Sources */,
 				01000000000000000000000B /* CameraPicker.swift in Sources */,
+				01000000000000000000000C /* ClaudeNutritionAnalyzer.swift in Sources */,
+				01000000000000000000000D /* MealLog.swift in Sources */,
+				01000000000000000000000E /* MyDayView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

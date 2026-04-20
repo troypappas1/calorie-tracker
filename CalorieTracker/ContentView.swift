@@ -5,12 +5,30 @@ struct ContentView: View {
     @StateObject private var viewModel = FoodAnalysisViewModel()
 
     var body: some View {
+        TabView {
+            FoodScanView(viewModel: viewModel)
+                .tabItem { Label("Scan", systemImage: "camera.viewfinder") }
+
+            MyDayView(mealLog: viewModel.mealLog)
+                .tabItem { Label("My Day", systemImage: "sun.max") }
+        }
+    }
+}
+
+private struct FoodScanView: View {
+    @ObservedObject var viewModel: FoodAnalysisViewModel
+
+    var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    heroSection
-                    imageSection
-                    controlsSection
+                    modePickerSection
+                    if viewModel.inputMode == .photo {
+                        imageSection
+                    } else {
+                        textSection
+                    }
+                    analyzeButton
                     resultSection
                 }
                 .padding(20)
@@ -38,16 +56,16 @@ struct ContentView: View {
         }
     }
 
-    private var heroSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Snap your meal.")
-                .font(.largeTitle.bold())
-
-            Text("Estimate calories and protein from a food photo in a few seconds.")
-                .font(.body)
-                .foregroundStyle(.secondary)
+    private var modePickerSection: some View {
+        Picker("Input Mode", selection: $viewModel.inputMode) {
+            Label("Photo", systemImage: "camera").tag(FoodAnalysisViewModel.InputMode.photo)
+            Label("Describe", systemImage: "text.bubble").tag(FoodAnalysisViewModel.InputMode.text)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .pickerStyle(.segmented)
+        .onChange(of: viewModel.inputMode) { _, _ in
+            viewModel.estimate = nil
+            viewModel.errorMessage = nil
+        }
     }
 
     private var imageSection: some View {
@@ -61,14 +79,13 @@ struct ContentView: View {
                     ZStack {
                         RoundedRectangle(cornerRadius: 24)
                             .fill(Color(.secondarySystemFill))
-
                         VStack(spacing: 12) {
                             Image(systemName: "camera.viewfinder")
                                 .font(.system(size: 42))
                                 .foregroundStyle(.secondary)
                             Text("Add a food photo")
                                 .font(.headline)
-                            Text("Use the camera or pick one from your library.")
+                            Text("Use the camera or pick from your library.")
                                 .multilineTextAlignment(.center)
                                 .foregroundStyle(.secondary)
                         }
@@ -78,13 +95,6 @@ struct ContentView: View {
             }
             .frame(height: 280)
             .clipShape(RoundedRectangle(cornerRadius: 24))
-        }
-    }
-
-    private var controlsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Photo")
-                .font(.headline)
 
             HStack(spacing: 12) {
                 Button {
@@ -105,10 +115,34 @@ struct ContentView: View {
                 }
                 .buttonStyle(.bordered)
             }
+        }
+    }
 
+    private var textSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Describe your meal")
+                .font(.headline)
+            TextEditor(text: $viewModel.descriptionText)
+                .frame(minHeight: 120)
+                .padding(12)
+                .background(Color(.secondarySystemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color(.separator), lineWidth: 0.5)
+                )
+        }
+    }
+
+    private var analyzeButton: some View {
+        VStack(spacing: 8) {
             Button {
                 Task {
-                    await viewModel.analyzeSelectedImage()
+                    if viewModel.inputMode == .photo {
+                        await viewModel.analyzeSelectedImage()
+                    } else {
+                        await viewModel.analyzeDescription()
+                    }
                 }
             } label: {
                 if viewModel.isAnalyzing {
@@ -120,12 +154,18 @@ struct ContentView: View {
                 }
             }
             .buttonStyle(.borderedProminent)
-            .disabled(viewModel.selectedImage == nil || viewModel.isAnalyzing)
+            .disabled(isAnalyzeDisabled)
 
             Text("Provider: \(viewModel.configuration.provider.displayName)")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }
+    }
+
+    private var isAnalyzeDisabled: Bool {
+        if viewModel.isAnalyzing { return true }
+        if viewModel.inputMode == .photo { return viewModel.selectedImage == nil }
+        return viewModel.descriptionText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     @ViewBuilder
@@ -141,8 +181,10 @@ struct ContentView: View {
                 Text("Estimate")
                     .font(.headline)
 
-                NutritionResultCard(result: result)
-            } else {
+                NutritionResultCard(result: result) {
+                    viewModel.logCurrentEstimate()
+                }
+            } else if viewModel.errorMessage == nil {
                 Text("No nutrition estimate yet.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)

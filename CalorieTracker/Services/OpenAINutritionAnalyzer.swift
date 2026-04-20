@@ -20,13 +20,25 @@ struct OpenAINutritionAnalyzer: NutritionAnalyzing {
         }
 
         let imageDataURL = "data:image/jpeg;base64,\(imageData.base64EncodedString())"
-        let requestBody = try makeRequestBody(imageDataURL: imageDataURL)
+        let body = try makeImageRequestBody(imageDataURL: imageDataURL)
+        return try await performRequest(body)
+    }
 
+    func analyze(description: String) async throws -> NutritionEstimate {
+        guard !apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw NutritionAnalyzerError.missingAPIKey
+        }
+
+        let body = try makeTextRequestBody(description: description)
+        return try await performRequest(body)
+    }
+
+    private func performRequest(_ body: Data) async throws -> NutritionEstimate {
         var request = URLRequest(url: URL(string: "https://api.openai.com/v1/responses")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        request.httpBody = requestBody
+        request.httpBody = body
 
         let (data, response) = try await session.data(for: request)
         guard let httpResponse = response as? HTTPURLResponse else {
@@ -35,7 +47,9 @@ struct OpenAINutritionAnalyzer: NutritionAnalyzing {
 
         guard (200...299).contains(httpResponse.statusCode) else {
             let apiError = try? JSONDecoder().decode(OpenAIErrorResponse.self, from: data)
-            throw NutritionAnalyzerError.apiError(apiError?.error.message ?? "OpenAI request failed with status \(httpResponse.statusCode).")
+            throw NutritionAnalyzerError.apiError(
+                apiError?.error.message ?? "OpenAI request failed with status \(httpResponse.statusCode)."
+            )
         }
 
         let decoded = try JSONDecoder().decode(OpenAIResponse.self, from: data)
@@ -50,26 +64,33 @@ struct OpenAINutritionAnalyzer: NutritionAnalyzing {
         }
     }
 
-    private func makeRequestBody(imageDataURL: String) throws -> Data {
-        let schema: [String: Any] = [
+    private func makeSchema() -> [String: Any] {
+        [
             "type": "object",
             "properties": [
                 "title": ["type": "string"],
                 "calories": ["type": "integer"],
                 "proteinGrams": ["type": "integer"],
-                "confidence": [
-                    "type": "string",
-                    "enum": ["Low", "Medium", "High"]
-                ],
-                "notes": [
-                    "type": "array",
-                    "items": ["type": "string"]
-                ]
+                "fatGrams": ["type": "integer"],
+                "carbsGrams": ["type": "integer"],
+                "fiberGrams": ["type": "integer"],
+                "sugarGrams": ["type": "integer"],
+                "sodiumMg": ["type": "integer"],
+                "vitaminA": ["type": "integer"],
+                "vitaminC": ["type": "integer"],
+                "calcium": ["type": "integer"],
+                "iron": ["type": "integer"],
+                "confidence": ["type": "string", "enum": ["Low", "Medium", "High"]],
+                "notes": ["type": "array", "items": ["type": "string"]]
             ],
-            "required": ["title", "calories", "proteinGrams", "confidence", "notes"],
+            "required": ["title", "calories", "proteinGrams", "fatGrams", "carbsGrams",
+                         "fiberGrams", "sugarGrams", "sodiumMg", "vitaminA", "vitaminC",
+                         "calcium", "iron", "confidence", "notes"],
             "additionalProperties": false
         ]
+    }
 
+    private func makeImageRequestBody(imageDataURL: String) throws -> Data {
         let body: [String: Any] = [
             "model": "gpt-4.1-mini",
             "input": [[
@@ -77,11 +98,7 @@ struct OpenAINutritionAnalyzer: NutritionAnalyzing {
                 "content": [
                     [
                         "type": "input_text",
-                        "text": """
-                        Analyze this food image and estimate the likely dish name, calories, and protein in grams for the visible serving.
-                        Return JSON only.
-                        If the image is unclear, make your best estimate and lower confidence.
-                        """
+                        "text": "Analyze this food image and estimate the nutrition for the visible serving size. Return JSON only. If unclear, make your best estimate and lower confidence."
                     ],
                     [
                         "type": "input_image",
@@ -95,11 +112,32 @@ struct OpenAINutritionAnalyzer: NutritionAnalyzing {
                     "type": "json_schema",
                     "name": "nutrition_estimate",
                     "strict": true,
-                    "schema": schema
+                    "schema": makeSchema()
                 ]
             ]
         ]
+        return try JSONSerialization.data(withJSONObject: body, options: [])
+    }
 
+    private func makeTextRequestBody(description: String) throws -> Data {
+        let body: [String: Any] = [
+            "model": "gpt-4.1-mini",
+            "input": [[
+                "role": "user",
+                "content": [[
+                    "type": "input_text",
+                    "text": "You are a nutrition expert. The user describes a meal: \"\(description)\"\n\nEstimate the nutrition for this meal. Return JSON only."
+                ]]
+            ]],
+            "text": [
+                "format": [
+                    "type": "json_schema",
+                    "name": "nutrition_estimate",
+                    "strict": true,
+                    "schema": makeSchema()
+                ]
+            ]
+        ]
         return try JSONSerialization.data(withJSONObject: body, options: [])
     }
 }
@@ -115,7 +153,7 @@ enum NutritionAnalyzerError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .missingAPIKey:
-            return "Add your OpenAI API key in Settings to use the OpenAI provider."
+            return "Add an API key in Settings to use this provider."
         case .invalidImageData:
             return "The selected image could not be prepared for upload."
         case .invalidResponse:
@@ -132,7 +170,6 @@ enum NutritionAnalyzerError: LocalizedError {
 
 private struct OpenAIResponse: Decodable {
     let outputText: String?
-
     private enum CodingKeys: String, CodingKey {
         case outputText = "output_text"
     }
@@ -142,6 +179,5 @@ private struct OpenAIErrorResponse: Decodable {
     struct APIError: Decodable {
         let message: String
     }
-
     let error: APIError
 }
