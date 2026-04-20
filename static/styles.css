@@ -7,11 +7,10 @@
   --accent: #d96f32;
   --accent-dark: #a64a18;
   --shadow: 0 18px 50px rgba(70, 45, 22, 0.12);
+  --sidebar-w: 280px;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
@@ -24,6 +23,7 @@ body {
     linear-gradient(180deg, #fbf6ef 0%, var(--bg) 100%);
 }
 
+/* ── Main page layout ── */
 .page {
   width: min(1120px, calc(100% - 32px));
   margin: 0 auto;
@@ -32,9 +32,7 @@ body {
   gap: 24px;
 }
 
-.hero {
-  padding: 20px 8px 0;
-}
+.hero { padding: 20px 8px 0; }
 
 .eyebrow {
   margin: 0 0 10px;
@@ -44,12 +42,7 @@ body {
   color: var(--accent-dark);
 }
 
-h1,
-h2,
-h3,
-p {
-  margin-top: 0;
-}
+h1, h2, h3, p { margin-top: 0; }
 
 h1 {
   max-width: 12ch;
@@ -64,6 +57,7 @@ h1 {
   color: var(--muted);
 }
 
+/* ── Panels ── */
 .panel {
   background: var(--panel);
   border: 1px solid var(--line);
@@ -73,8 +67,7 @@ h1 {
 }
 
 .uploader-panel,
-.result-panel,
-.my-day-panel {
+.result-panel {
   padding: 24px;
 }
 
@@ -87,6 +80,7 @@ h1 {
   color: var(--muted);
 }
 
+/* ── Upload zone ── */
 .upload-zone {
   display: grid;
   gap: 8px;
@@ -104,15 +98,10 @@ h1 {
   background: rgba(255, 241, 227, 1);
 }
 
-.upload-zone input {
-  display: none;
-}
+.upload-zone input { display: none; }
+.upload-title { font-size: 1.2rem; font-weight: 700; }
 
-.upload-title {
-  font-size: 1.2rem;
-  font-weight: 700;
-}
-
+/* ── Preview ── */
 .preview-shell {
   margin-top: 18px;
   overflow: hidden;
@@ -128,6 +117,7 @@ h1 {
   object-fit: cover;
 }
 
+/* ── Buttons ── */
 .actions {
   display: flex;
   gap: 12px;
@@ -145,35 +135,123 @@ button {
   transition: transform 160ms ease, opacity 160ms ease, background 160ms ease;
 }
 
-button:hover:not(:disabled) {
-  transform: translateY(-1px);
+button:hover:not(:disabled) { transform: translateY(-1px); }
+button:disabled { cursor: not-allowed; opacity: 0.55; }
+
+.primary { background: var(--accent); color: white; }
+.secondary { background: rgba(111, 93, 76, 0.12); color: var(--text); }
+button.small { padding: 8px 16px; font-size: 0.88rem; }
+
+.status { min-height: 24px; margin: 16px 0 0; }
+
+/* ── Tab bar ── */
+.tab-bar {
+  display: flex;
+  gap: 8px;
+  padding: 6px;
+  background: rgba(255, 252, 247, 0.7);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  width: fit-content;
+  backdrop-filter: blur(12px);
+  text-decoration: none;
 }
 
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
+.tab {
+  background: transparent;
+  color: var(--muted);
+  padding: 10px 24px;
+  font-size: 0.95rem;
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
 }
 
-.primary {
+.tab:hover:not(:disabled) {
+  background: rgba(217, 111, 50, 0.08);
+  color: var(--text);
+  transform: none;
+}
+
+.tab.active {
   background: var(--accent);
   color: white;
 }
 
-.secondary {
-  background: rgba(111, 93, 76, 0.12);
+.my-day-link {
+  background: transparent;
+  color: var(--muted);
+  padding: 10px 24px;
+  font-size: 0.95rem;
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.my-day-link:hover {
+  background: rgba(217, 111, 50, 0.08);
   color: var(--text);
 }
 
-button.small {
-  padding: 8px 16px;
+/* ── Sub-tabs (Photo / Notes) ── */
+.sub-tab-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 4px;
+  background: rgba(255, 245, 236, 0.8);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  width: fit-content;
+}
+
+.sub-tab {
+  background: transparent;
+  color: var(--muted);
+  padding: 7px 18px;
   font-size: 0.88rem;
+  border-radius: 999px;
+  font-weight: 600;
 }
 
-.status {
-  min-height: 24px;
-  margin: 16px 0 0;
+.sub-tab.active {
+  background: var(--accent);
+  color: white;
 }
 
+.sub-tab:hover:not(.active):not(:disabled) {
+  background: rgba(217, 111, 50, 0.1);
+  color: var(--text);
+  transform: none;
+}
+
+/* ── Notes textarea ── */
+.meal-textarea {
+  width: 100%;
+  padding: 16px;
+  font-size: 1rem;
+  font-family: Georgia, "Times New Roman", serif;
+  color: var(--text);
+  background: rgba(255, 245, 236, 0.9);
+  border: 2px dashed rgba(166, 74, 24, 0.28);
+  border-radius: 22px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 160ms ease;
+  line-height: 1.55;
+}
+
+.meal-textarea:focus {
+  border-color: rgba(166, 74, 24, 0.55);
+  background: rgba(255, 241, 227, 1);
+}
+
+/* ── Result panel ── */
 .result-header {
   display: flex;
   justify-content: space-between;
@@ -189,28 +267,93 @@ button.small {
   background: rgba(217, 111, 50, 0.12);
   color: var(--accent-dark);
   font-weight: 700;
+  white-space: nowrap;
 }
 
-.metrics {
+/* ── Macros grid ── */
+.macros-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
   margin: 20px 0;
 }
 
 .metric-card {
-  padding: 18px;
-  border-radius: 22px;
+  padding: 16px;
+  border-radius: 20px;
   background: rgba(255, 255, 255, 0.88);
   border: 1px solid var(--line);
 }
 
+.metric-full { grid-column: 1 / -1; }
+
 .metric-value {
   display: block;
-  margin-top: 10px;
-  font-size: clamp(1.8rem, 5vw, 3rem);
+  margin-top: 8px;
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
 }
 
+/* ── Vitamins section ── */
+.vitamins-section {
+  margin: 4px 0 20px;
+}
+
+.vitamins-heading {
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.dv-note {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-weight: normal;
+}
+
+.vitamins-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 20px;
+}
+
+.vitamin-item {
+  display: grid;
+  grid-template-columns: 80px 1fr 38px;
+  align-items: center;
+  gap: 8px;
+}
+
+.vitamin-label {
+  font-size: 0.82rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.vitamin-bar-wrap {
+  height: 6px;
+  background: rgba(166, 74, 24, 0.12);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.vitamin-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+  transition: width 400ms ease;
+  width: 0%;
+}
+
+.vitamin-pct {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent-dark);
+  text-align: right;
+}
+
+/* ── Confidence / notes ── */
 .confidence-row {
   display: flex;
   justify-content: space-between;
@@ -225,7 +368,6 @@ button.small {
   line-height: 1.6;
 }
 
-/* Add to My Day */
 .add-to-day-row {
   margin-top: 20px;
   padding-top: 20px;
@@ -237,131 +379,189 @@ button.small {
   text-align: center;
 }
 
-/* Tab bar */
-.tab-bar {
+/* ── Tab content ── */
+.tab-content { display: contents; }
+
+/* ── My Day page ── */
+.my-day-page {
+  background:
+    radial-gradient(circle at top left, rgba(255, 184, 125, 0.4), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(199, 92, 49, 0.2), transparent 25%),
+    linear-gradient(180deg, #fbf6ef 0%, var(--bg) 100%);
+  min-height: 100vh;
+}
+
+.myday-layout {
   display: flex;
-  gap: 8px;
-  padding: 6px;
-  background: rgba(255, 252, 247, 0.7);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  width: fit-content;
+  min-height: 100vh;
+}
+
+/* ── Sidebar ── */
+.myday-sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: rgba(255, 252, 247, 0.9);
+  border-right: 1px solid var(--line);
   backdrop-filter: blur(12px);
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
 }
 
-.tab {
-  background: transparent;
+.sidebar-brand .eyebrow { margin-bottom: 6px; }
+
+.sidebar-date {
+  font-size: 0.82rem;
   color: var(--muted);
-  padding: 10px 24px;
-  font-size: 0.95rem;
-  border-radius: 999px;
-  font-weight: 600;
+  margin: 0;
 }
 
-.tab:hover:not(:disabled) {
-  background: rgba(217, 111, 50, 0.08);
-  color: var(--text);
-  transform: none;
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.tab.active {
-  background: var(--accent);
-  color: white;
+.sidebar-back {
+  color: var(--accent-dark);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
 }
 
-/* Tab content layout */
-.tab-content {
-  display: contents;
+.sidebar-back:hover { text-decoration: underline; }
+
+.sidebar-totals {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
-#tab-my-day {
-  display: block;
+.sidebar-section-heading {
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-dark);
+  margin-bottom: 12px;
 }
 
-#tab-my-day:not([hidden]) {
-  display: block;
-}
-
-/* My Day panel */
-.my-day-header {
+.sidebar-macro-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
 }
 
-.my-day-header h2 {
-  margin: 0;
+.sidebar-macro-label {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.sidebar-macro-value {
+  font-size: 1rem;
+}
+
+.sidebar-divider {
+  height: 1px;
+  background: var(--line);
+  margin: 18px 0 14px;
+}
+
+.sidebar-dv-note {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin: -8px 0 10px;
+}
+
+.sidebar-vitamin {
+  margin-bottom: 6px;
+  grid-template-columns: 72px 1fr 34px;
+}
+
+/* ── My Day main content ── */
+.myday-main {
+  flex: 1;
+  padding: 40px 40px 64px;
+  min-width: 0;
+}
+
+.myday-main-title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  margin-bottom: 28px;
+  line-height: 1;
 }
 
 .empty-log {
   color: var(--muted);
   text-align: center;
-  padding: 32px 0;
+  padding: 48px 0;
   margin: 0;
 }
 
-#food-log {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 8px;
+/* ── Entry cards (My Day page) ── */
+.entry-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  padding: 20px;
+  margin-bottom: 16px;
 }
 
-.food-entry {
+.entry-card-top {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px solid var(--line);
-  border-radius: 18px;
+  margin-bottom: 16px;
 }
 
-.food-thumb {
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
+.entry-thumb {
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
   object-fit: cover;
   flex-shrink: 0;
 }
 
-.food-thumb-placeholder {
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
+.entry-thumb-placeholder {
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
   background: rgba(217, 111, 50, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   flex-shrink: 0;
 }
 
-.food-entry-info {
+.entry-card-title-row {
   flex: 1;
   min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.food-entry-title {
-  display: block;
-  font-size: 1rem;
+.entry-card-title {
+  font-size: 1.05rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.food-entry-meta {
-  display: block;
-  font-size: 0.88rem;
-  color: var(--muted);
-  margin-top: 3px;
-}
-
 .remove-btn {
   background: rgba(111, 93, 76, 0.1);
   color: var(--muted);
-  padding: 6px 10px;
+  padding: 6px 12px;
   font-size: 0.8rem;
   border-radius: 999px;
   flex-shrink: 0;
@@ -374,29 +574,70 @@ button.small {
   transform: none;
 }
 
+/* ── Entry macro grid ── */
+.entry-macros-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.entry-macro {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.entry-macro-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.entry-macro strong { font-size: 1rem; }
+
+.entry-vitamins {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 20px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+/* ── Responsive ── */
 @media (min-width: 900px) {
   .page {
     grid-template-columns: 1.08fr 0.92fr;
     align-items: start;
   }
 
-  .hero {
-    grid-column: 1 / -1;
+  .hero     { grid-column: 1 / -1; }
+  .tab-bar  { grid-column: 1 / -1; }
+
+  #tab-analyze { display: contents; }
+
+  .macros-grid { grid-template-columns: repeat(3, 1fr); }
+  .metric-full { grid-column: auto; }
+}
+
+@media (max-width: 768px) {
+  .myday-layout { flex-direction: column; }
+
+  .myday-sidebar {
+    width: 100%;
+    height: auto;
+    position: static;
+    padding: 24px 20px;
   }
 
-  .tab-bar {
-    grid-column: 1 / -1;
-  }
+  .myday-main { padding: 24px 20px 48px; }
 
-  /* Analyze tab: two-column layout for uploader + result */
-  #tab-analyze {
-    display: contents;
-  }
-
-  /* My Day tab: full width */
-  #tab-my-day:not([hidden]) {
-    grid-column: 1 / -1;
-  }
+  .entry-macros-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 640px) {
@@ -406,12 +647,11 @@ button.small {
   }
 
   .uploader-panel,
-  .result-panel,
-  .my-day-panel {
+  .result-panel {
     padding: 18px;
   }
 
-  .metrics {
-    grid-template-columns: 1fr;
-  }
+  .macros-grid { grid-template-columns: repeat(2, 1fr); }
+  .vitamins-grid { grid-template-columns: 1fr; }
+  .vitamin-item { grid-template-columns: 78px 1fr 36px; }
 }

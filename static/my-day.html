@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Day — Calorie Tracker</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="my-day-page">
+  <div class="myday-layout">
+
+    <aside class="myday-sidebar">
+      <div class="sidebar-brand">
+        <p class="eyebrow">Calorie Tracker</p>
+        <p class="sidebar-date" id="sidebar-date"></p>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="/" class="sidebar-back">&#8592; Back to Analyzer</a>
+        <button id="clear-day-btn" class="secondary small">Clear Day</button>
+      </nav>
+
+      <div class="sidebar-totals">
+        <h3 class="sidebar-section-heading">Today's Totals</h3>
+
+        <div class="sidebar-macro-row">
+          <span class="sidebar-macro-label">Calories</span>
+          <strong class="sidebar-macro-value" id="s-calories">0</strong>
+        </div>
+        <div class="sidebar-macro-row">
+          <span class="sidebar-macro-label">Protein</span>
+          <strong class="sidebar-macro-value" id="s-protein">0g</strong>
+        </div>
+        <div class="sidebar-macro-row">
+          <span class="sidebar-macro-label">Fat</span>
+          <strong class="sidebar-macro-value" id="s-fat">0g</strong>
+        </div>
+        <div class="sidebar-macro-row">
+          <span class="sidebar-macro-label">Carbs</span>
+          <strong class="sidebar-macro-value" id="s-carbs">0g</strong>
+        </div>
+        <div class="sidebar-macro-row">
+          <span class="sidebar-macro-label">Fiber</span>
+          <strong class="sidebar-macro-value" id="s-fiber">0g</strong>
+        </div>
+        <div class="sidebar-macro-row">
+          <span class="sidebar-macro-label">Sugar</span>
+          <strong class="sidebar-macro-value" id="s-sugar">0g</strong>
+        </div>
+        <div class="sidebar-macro-row">
+          <span class="sidebar-macro-label">Sodium</span>
+          <strong class="sidebar-macro-value" id="s-sodium">0mg</strong>
+        </div>
+
+        <div class="sidebar-divider"></div>
+        <h3 class="sidebar-section-heading">Vitamins &amp; Minerals</h3>
+        <p class="sidebar-dv-note">% Daily Value (cumulative)</p>
+
+        <div class="vitamin-item sidebar-vitamin">
+          <span class="vitamin-label">Vitamin A</span>
+          <div class="vitamin-bar-wrap"><div class="vitamin-bar" id="s-bar-vitA"></div></div>
+          <span class="vitamin-pct" id="s-vitA">0%</span>
+        </div>
+        <div class="vitamin-item sidebar-vitamin">
+          <span class="vitamin-label">Vitamin C</span>
+          <div class="vitamin-bar-wrap"><div class="vitamin-bar" id="s-bar-vitC"></div></div>
+          <span class="vitamin-pct" id="s-vitC">0%</span>
+        </div>
+        <div class="vitamin-item sidebar-vitamin">
+          <span class="vitamin-label">Calcium</span>
+          <div class="vitamin-bar-wrap"><div class="vitamin-bar" id="s-bar-calcium"></div></div>
+          <span class="vitamin-pct" id="s-calcium">0%</span>
+        </div>
+        <div class="vitamin-item sidebar-vitamin">
+          <span class="vitamin-label">Iron</span>
+          <div class="vitamin-bar-wrap"><div class="vitamin-bar" id="s-bar-iron"></div></div>
+          <span class="vitamin-pct" id="s-iron">0%</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="myday-main">
+      <h1 class="myday-main-title">My Day</h1>
+      <div id="food-log-full"></div>
+    </main>
+
+  </div>
+  <script src="/my-day.js"></script>
+</body>
+</html>

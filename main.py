@@ -16,9 +16,25 @@ ROOT = Path(__file__).parent
 STATIC_DIR = ROOT / "static"
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
 
+NUTRITION_SCHEMA = (
+    '{"title": "dish name", "calories": 550, "proteinGrams": 25, "fatGrams": 18, '
+    '"carbsGrams": 60, "fiberGrams": 5, "sugarGrams": 8, "sodiumMg": 450, '
+    '"vitaminA": 15, "vitaminC": 20, "calcium": 10, "iron": 8, '
+    '"confidence": "High", "notes": ["short helpful note"]}'
+)
+NUTRITION_NOTES = (
+    "vitaminA, vitaminC, calcium, iron are % Daily Value as integers. "
+    "confidence must be Low, Medium, or High. "
+    "notes should have 1-2 short observations about the estimate."
+)
+
 
 class AnalyzeRequest(BaseModel):
     imageDataUrl: str
+
+
+class AnalyzeTextRequest(BaseModel):
+    description: str
 
 
 def mock_estimate() -> dict:
@@ -26,6 +42,15 @@ def mock_estimate() -> dict:
         "title": "Chicken rice bowl",
         "calories": 640,
         "proteinGrams": 38,
+        "fatGrams": 14,
+        "carbsGrams": 72,
+        "fiberGrams": 4,
+        "sugarGrams": 3,
+        "sodiumMg": 620,
+        "vitaminA": 8,
+        "vitaminC": 12,
+        "calcium": 6,
+        "iron": 15,
         "confidence": "Medium",
         "notes": [
             "Mock result — set ANTHROPIC_API_KEY in Vercel environment variables to enable real analysis.",
@@ -38,13 +63,11 @@ def mock_estimate() -> dict:
 def validate_image_data_url(image_data_url: str) -> None:
     if not image_data_url.startswith("data:image/"):
         raise HTTPException(status_code=400, detail="Upload a valid image before analyzing.")
-
     try:
         encoded = image_data_url.split(",", 1)[1]
         raw = base64.b64decode(encoded, validate=True)
     except (IndexError, ValueError, base64.binascii.Error) as exc:
         raise HTTPException(status_code=400, detail="Could not read the uploaded image.") from exc
-
     if len(raw) > MAX_IMAGE_BYTES:
         raise HTTPException(status_code=400, detail="Image is too large. Keep uploads under 8 MB.")
 
@@ -64,46 +87,7 @@ def extract_json(text: str) -> dict:
     return json.loads(text[start:end])
 
 
-def analyze_with_anthropic(image_data_url: str, api_key: str) -> dict:
-    header, encoded = image_data_url.split(",", 1)
-    media_type = header.split(":")[1].split(";")[0]
-    supported = {"image/jpeg", "image/png", "image/gif", "image/webp"}
-    if media_type not in supported:
-        media_type = "image/jpeg"
-
-    payload = {
-        "model": "claude-haiku-4-5-20251001",
-        "max_tokens": 512,
-        "messages": [
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "image",
-                        "source": {
-                            "type": "base64",
-                            "media_type": media_type,
-                            "data": encoded,
-                        },
-                    },
-                    {
-                        "type": "text",
-                        "text": (
-                            "You are a nutrition expert. Identify the food(s) in this image and "
-                            "estimate the dish name, calories (kcal), and protein (grams) for the "
-                            "visible serving size.\n\n"
-                            "Reply with ONLY a JSON object, no other text:\n"
-                            '{"title": "dish name", "calories": 550, "proteinGrams": 25, '
-                            '"confidence": "High", "notes": ["short helpful note"]}\n\n'
-                            "confidence must be Low, Medium, or High. "
-                            "notes should have 1-2 short observations about your estimate."
-                        ),
-                    },
-                ],
-            }
-        ],
-    }
-
+def call_anthropic(payload: dict, api_key: str) -> dict:
     request = urllib.request.Request(
         "https://api.anthropic.com/v1/messages",
         data=json.dumps(payload).encode("utf-8"),
@@ -114,7 +98,6 @@ def analyze_with_anthropic(image_data_url: str, api_key: str) -> dict:
         },
         method="POST",
     )
-
     try:
         with urllib.request.urlopen(request, timeout=60) as response:
             response_body = response.read().decode("utf-8")
@@ -136,12 +119,62 @@ def analyze_with_anthropic(image_data_url: str, api_key: str) -> dict:
     content = parsed_response.get("content", [])
     if not content or content[0].get("type") != "text":
         raise HTTPException(status_code=502, detail="Anthropic did not return a text response.")
-
     try:
-        estimate = extract_json(content[0]["text"])
+        return extract_json(content[0]["text"])
     except (json.JSONDecodeError, ValueError) as exc:
         raise HTTPException(status_code=502, detail="Could not parse nutrition data from response.") from exc
 
+
+def analyze_with_anthropic(image_data_url: str, api_key: str) -> dict:
+    header, encoded = image_data_url.split(",", 1)
+    media_type = header.split(":")[1].split(";")[0]
+    if media_type not in {"image/jpeg", "image/png", "image/gif", "image/webp"}:
+        media_type = "image/jpeg"
+
+    payload = {
+        "model": "claude-haiku-4-5-20251001",
+        "max_tokens": 600,
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image",
+                        "source": {"type": "base64", "media_type": media_type, "data": encoded},
+                    },
+                    {
+                        "type": "text",
+                        "text": (
+                            "You are a nutrition expert. Identify the food(s) in this image and "
+                            "estimate the nutrition for the visible serving size.\n\n"
+                            f"Reply with ONLY a JSON object:\n{NUTRITION_SCHEMA}\n\n{NUTRITION_NOTES}"
+                        ),
+                    },
+                ],
+            }
+        ],
+    }
+    estimate = call_anthropic(payload, api_key)
+    estimate["source"] = "anthropic"
+    return estimate
+
+
+def analyze_text_with_anthropic(description: str, api_key: str) -> dict:
+    payload = {
+        "model": "claude-haiku-4-5-20251001",
+        "max_tokens": 600,
+        "messages": [
+            {
+                "role": "user",
+                "content": (
+                    f'You are a nutrition expert. The user describes a meal: "{description}"\n\n'
+                    "Estimate the nutrition for this meal. "
+                    f"Reply with ONLY a JSON object:\n{NUTRITION_SCHEMA}\n\n{NUTRITION_NOTES}"
+                ),
+            }
+        ],
+    }
+    estimate = call_anthropic(payload, api_key)
     estimate["source"] = "anthropic"
     return estimate
 
@@ -172,6 +205,14 @@ def analyze(request: AnalyzeRequest) -> dict:
     validate_image_data_url(request.imageDataUrl)
     api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
     return analyze_with_anthropic(request.imageDataUrl, api_key) if api_key else mock_estimate()
+
+
+@app.post("/api/analyze-text")
+def analyze_text(request: AnalyzeTextRequest) -> dict:
+    if not request.description.strip():
+        raise HTTPException(status_code=400, detail="Please enter a meal description.")
+    api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
+    return analyze_text_with_anthropic(request.description.strip(), api_key) if api_key else mock_estimate()
 
 
 @app.get("/")

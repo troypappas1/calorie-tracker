@@ -10,40 +10,56 @@
   <main class="page">
     <section class="hero">
       <p class="eyebrow">Food Photo Nutrition</p>
-      <h1>Upload a meal photo and estimate calories plus protein.</h1>
+      <h1>Upload a meal photo and estimate calories.</h1>
       <p class="lede">
-        Upload a food image, get an instant nutrition estimate, and log your meals for the day.
+        Upload a food image or describe your meal, get a full nutrition breakdown, and log your meals for the day.
       </p>
     </section>
 
     <nav class="tab-bar">
-      <button class="tab active" data-tab="analyze">Analyze</button>
-      <button class="tab" data-tab="my-day">My Day</button>
+      <button class="tab active">Analyze</button>
+      <a href="/my-day" class="tab my-day-link">My Day</a>
     </nav>
 
     <div id="tab-analyze" class="tab-content">
       <section class="panel uploader-panel">
         <div class="upload-copy">
-          <h2>Your photo</h2>
-          <p>Select a clear image of the meal. Better lighting and a visible portion size usually help.</p>
+          <h2>Add a meal</h2>
+          <p>Choose a photo or describe what you ate to get a nutrition estimate.</p>
         </div>
 
-        <label class="upload-zone" for="photo-input" id="upload-zone">
-          <input id="photo-input" type="file" accept="image/*">
-          <span class="upload-title">Choose a food photo</span>
-          <span class="upload-subtitle">JPG, PNG, or HEIC screenshots converted by your browser</span>
-        </label>
+        <div class="sub-tab-bar">
+          <button class="sub-tab active" data-sub="photo">Photo</button>
+          <button class="sub-tab" data-sub="notes">Notes</button>
+        </div>
 
-        <div class="preview-shell" id="preview-shell" hidden>
-          <img id="preview-image" alt="Selected food preview">
+        <div id="sub-photo" class="sub-tab-content">
+          <label class="upload-zone" for="photo-input" id="upload-zone">
+            <input id="photo-input" type="file" accept="image/*">
+            <span class="upload-title">Choose a food photo</span>
+            <span class="upload-subtitle">JPG, PNG, or HEIC screenshots converted by your browser</span>
+          </label>
+
+          <div class="preview-shell" id="preview-shell" hidden>
+            <img id="preview-image" alt="Selected food preview">
+          </div>
+        </div>
+
+        <div id="sub-notes" class="sub-tab-content" hidden>
+          <textarea
+            id="notes-input"
+            class="meal-textarea"
+            rows="5"
+            placeholder="Describe what you ate, e.g. &ldquo;A bowl of oatmeal with blueberries, honey, and almond milk&rdquo;"
+          ></textarea>
         </div>
 
         <div class="actions">
           <button id="analyze-button" class="primary" disabled>Analyze Nutrition</button>
-          <button id="clear-button" class="secondary" disabled>Clear Photo</button>
+          <button id="clear-button" class="secondary" disabled>Clear</button>
         </div>
 
-        <p class="status" id="status-text">Upload a photo to begin.</p>
+        <p class="status" id="status-text">Upload a photo or describe your meal to begin.</p>
       </section>
 
       <section class="panel result-panel" id="result-panel">
@@ -55,7 +71,7 @@
           <span class="pill" id="provider-pill">Waiting</span>
         </div>
 
-        <div class="metrics">
+        <div class="macros-grid">
           <article class="metric-card">
             <span class="metric-label">Calories</span>
             <strong class="metric-value" id="calories-value">--</strong>
@@ -64,6 +80,52 @@
             <span class="metric-label">Protein</span>
             <strong class="metric-value" id="protein-value">--</strong>
           </article>
+          <article class="metric-card">
+            <span class="metric-label">Fat</span>
+            <strong class="metric-value" id="fat-value">--</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Carbs</span>
+            <strong class="metric-value" id="carbs-value">--</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Fiber</span>
+            <strong class="metric-value" id="fiber-value">--</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Sugar</span>
+            <strong class="metric-value" id="sugar-value">--</strong>
+          </article>
+          <article class="metric-card metric-full">
+            <span class="metric-label">Sodium</span>
+            <strong class="metric-value" id="sodium-value">--</strong>
+          </article>
+        </div>
+
+        <div class="vitamins-section">
+          <h3 class="vitamins-heading">Vitamins &amp; Minerals <span class="dv-note">% Daily Value</span></h3>
+          <div class="vitamins-grid">
+            <div class="vitamin-item">
+              <span class="vitamin-label">Vitamin A</span>
+              <div class="vitamin-bar-wrap"><div class="vitamin-bar" id="bar-vitA"></div></div>
+              <span class="vitamin-pct" id="vitA-value">--</span>
+            </div>
+            <div class="vitamin-item">
+              <span class="vitamin-label">Vitamin C</span>
+              <div class="vitamin-bar-wrap"><div class="vitamin-bar" id="bar-vitC"></div></div>
+              <span class="vitamin-pct" id="vitC-value">--</span>
+            </div>
+            <div class="vitamin-item">
+              <span class="vitamin-label">Calcium</span>
+              <div class="vitamin-bar-wrap"><div class="vitamin-bar" id="bar-calcium"></div></div>
+              <span class="vitamin-pct" id="calcium-value">--</span>
+            </div>
+            <div class="vitamin-item">
+              <span class="vitamin-label">Iron</span>
+              <div class="vitamin-bar-wrap"><div class="vitamin-bar" id="bar-iron"></div></div>
+              <span class="vitamin-pct" id="iron-value">--</span>
+            </div>
+          </div>
         </div>
 
         <div class="confidence-row">
@@ -80,30 +142,6 @@
 
         <div class="add-to-day-row" id="add-to-day-row" hidden>
           <button id="add-to-day-button" class="primary add-btn">+ Add to My Day</button>
-        </div>
-      </section>
-    </div>
-
-    <div id="tab-my-day" class="tab-content" hidden>
-      <section class="panel my-day-panel">
-        <div class="my-day-header">
-          <h2>My Day</h2>
-          <button id="clear-day-button" class="secondary small">Clear Day</button>
-        </div>
-
-        <div class="metrics">
-          <article class="metric-card">
-            <span class="metric-label">Total Calories</span>
-            <strong class="metric-value" id="total-calories">0</strong>
-          </article>
-          <article class="metric-card">
-            <span class="metric-label">Total Protein</span>
-            <strong class="metric-value" id="total-protein">0g</strong>
-          </article>
-        </div>
-
-        <div id="food-log">
-          <p class="empty-log">No meals logged yet. Analyze a photo and tap "Add to My Day".</p>
         </div>
       </section>
     </div>
