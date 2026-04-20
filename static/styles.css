@@ -697,6 +697,38 @@ button:active:not(:disabled) { transform: translateY(1px); }
   border-bottom: 1px solid var(--line);
 }
 
+.user-chip {
+  position: fixed;
+  top: 14px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface, #fff);
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 12px 4px 4px;
+  z-index: 100;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+}
+
+.user-chip-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-chip-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .sign-in-hero-btn {
   display: inline-flex;
   align-items: center;

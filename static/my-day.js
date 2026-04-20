@@ -219,6 +219,9 @@ function updateAuthUI(user) {
   const out     = document.getElementById('auth-signed-out');
   const inEl    = document.getElementById('auth-signed-in');
   const loading = document.getElementById('auth-loading');
+  const chip    = document.getElementById('user-chip');
+  const chipAvatar = document.getElementById('chip-avatar');
+  const chipName   = document.getElementById('chip-name');
   loading.hidden = true;
   if (user) {
     out.hidden  = true;
@@ -227,9 +230,14 @@ function updateAuthUI(user) {
     const avatar = document.getElementById('user-avatar');
     avatar.src = user.photoURL || '';
     avatar.style.display = user.photoURL ? 'block' : 'none';
+    chip.hidden = false;
+    chipAvatar.src = user.photoURL || '';
+    chipAvatar.style.display = user.photoURL ? 'block' : 'none';
+    chipName.textContent = user.displayName || user.email || '';
   } else {
     out.hidden  = false;
     inEl.hidden = true;
+    chip.hidden = true;
   }
 }
 
