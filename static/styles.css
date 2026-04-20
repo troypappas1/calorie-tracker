@@ -690,6 +690,232 @@ button:active:not(:disabled) { transform: translateY(1px); }
   grid-template-columns: 70px 1fr 32px;
 }
 
+/* ── Auth section ── */
+.auth-section {
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.sign-in-btn {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 8px 11px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.13s, box-shadow 0.13s;
+  text-align: left;
+}
+
+.sign-in-btn:hover {
+  border-color: rgba(74, 107, 58, 0.4);
+  box-shadow: 0 1px 8px rgba(0,0,0,0.08);
+}
+
+.google-icon { width: 17px; height: 17px; flex-shrink: 0; }
+
+.auth-hint {
+  margin: 6px 0 0;
+  font-size: 0.71rem;
+  color: var(--muted);
+}
+
+.auth-signed-in {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.user-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1.5px solid var(--line);
+}
+
+.user-info { min-width: 0; }
+
+.user-name {
+  font-size: 0.81rem;
+  font-weight: 600;
+  margin: 0 0 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sign-out-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.73rem;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: underline;
+  font-family: system-ui, sans-serif;
+}
+
+.auth-loading {
+  display: flex;
+  gap: 5px;
+  padding: 6px 0;
+  justify-content: center;
+}
+
+.auth-loading-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: dot-bounce 1.2s ease-in-out infinite;
+}
+.auth-loading-dot:nth-child(2) { animation-delay: 0.2s; }
+.auth-loading-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dot-bounce {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+  40%            { transform: translateY(-5px); opacity: 1; }
+}
+
+/* ── Calendar widget ── */
+.calendar-widget {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 18px 20px 14px;
+  margin-bottom: 20px;
+}
+
+.cal-nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  gap: 10px;
+}
+
+.cal-month-label {
+  font-size: 1.05rem;
+  font-family: Georgia, serif;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.cal-arrow {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-sm);
+  color: var(--muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+  flex-shrink: 0;
+}
+
+.cal-arrow:hover {
+  border-color: var(--accent);
+  color: var(--accent-dark);
+  background: var(--accent-light);
+}
+
+.cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 4px;
+}
+
+.cal-weekdays span {
+  text-align: center;
+  font-size: 0.67rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  padding: 3px 0 6px;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.cal-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 2px 3px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  min-height: 38px;
+  transition: background 0.12s;
+  gap: 2px;
+}
+
+.cal-empty  { cursor: default; }
+.cal-future { opacity: 0.28; cursor: default; }
+
+.cal-cell:not(.cal-empty):not(.cal-future):not(.cal-selected):hover {
+  background: var(--accent-light);
+}
+
+.cal-num {
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+/* Today: subtle green ring */
+.cal-today {
+  background: rgba(74, 107, 58, 0.07);
+  outline: 1.5px solid rgba(74, 107, 58, 0.35);
+  outline-offset: -1px;
+}
+.cal-today .cal-num { font-weight: 700; color: var(--accent-dark); }
+
+/* Selected: filled green */
+.cal-selected {
+  background: var(--accent) !important;
+  outline: none;
+}
+.cal-selected .cal-num { color: #fff; font-weight: 700; }
+.cal-selected .cal-dot  { background: rgba(255,255,255,0.75); }
+
+/* Dot for days with logged meals */
+.cal-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+/* ── Viewing label ── */
+.myday-viewing-label {
+  font-size: 1.2rem;
+  font-family: Georgia, serif;
+  margin-bottom: 14px;
+  color: var(--text);
+}
+
 /* ── My Day main content ── */
 .myday-main {
   flex: 1;
