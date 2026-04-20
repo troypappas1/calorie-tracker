@@ -147,6 +147,11 @@ def analyze_with_anthropic(image_data_url: str, api_key: str) -> dict:
                         "text": (
                             "You are a nutrition expert. Identify the food(s) in this image and "
                             "estimate the nutrition for the visible serving size.\n\n"
+                            "SIZE CALIBRATION: If a human hand is visible in the image, use it as "
+                            "a size reference — an average adult palm is about 8–9 cm wide and "
+                            "18–20 cm long. Use this to estimate the actual dimensions and portion "
+                            "size of the food more accurately. If no hand is visible, base your "
+                            "estimate on typical restaurant/home serving sizes.\n\n"
                             f"Reply with ONLY a JSON object:\n{NUTRITION_SCHEMA}\n\n{NUTRITION_NOTES}"
                         ),
                     },

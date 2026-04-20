@@ -24,32 +24,59 @@
         <h3 class="sidebar-section-heading">Today's Totals</h3>
 
         <div class="sidebar-macro-row">
-          <span class="sidebar-macro-label">Calories</span>
-          <strong class="sidebar-macro-value" id="s-calories">0</strong>
+          <div class="sidebar-macro-header">
+            <span class="sidebar-macro-label">Calories</span>
+            <span class="sidebar-macro-fraction"><strong id="s-calories">0</strong><span class="s-goal"> / 2,000</span></span>
+          </div>
+          <div class="sgb-wrap"><div class="sgb" id="sgb-calories"></div></div>
         </div>
+
         <div class="sidebar-macro-row">
-          <span class="sidebar-macro-label">Protein</span>
-          <strong class="sidebar-macro-value" id="s-protein">0g</strong>
+          <div class="sidebar-macro-header">
+            <span class="sidebar-macro-label">Protein</span>
+            <span class="sidebar-macro-fraction"><strong id="s-protein">0g</strong><span class="s-goal"> / 50g</span></span>
+          </div>
+          <div class="sgb-wrap"><div class="sgb" id="sgb-protein"></div></div>
         </div>
+
         <div class="sidebar-macro-row">
-          <span class="sidebar-macro-label">Fat</span>
-          <strong class="sidebar-macro-value" id="s-fat">0g</strong>
+          <div class="sidebar-macro-header">
+            <span class="sidebar-macro-label">Carbs</span>
+            <span class="sidebar-macro-fraction"><strong id="s-carbs">0g</strong><span class="s-goal"> / 275g</span></span>
+          </div>
+          <div class="sgb-wrap"><div class="sgb" id="sgb-carbs"></div></div>
         </div>
+
         <div class="sidebar-macro-row">
-          <span class="sidebar-macro-label">Carbs</span>
-          <strong class="sidebar-macro-value" id="s-carbs">0g</strong>
+          <div class="sidebar-macro-header">
+            <span class="sidebar-macro-label">Fat</span>
+            <span class="sidebar-macro-fraction"><strong id="s-fat">0g</strong><span class="s-goal"> / 78g</span></span>
+          </div>
+          <div class="sgb-wrap"><div class="sgb" id="sgb-fat"></div></div>
         </div>
+
         <div class="sidebar-macro-row">
-          <span class="sidebar-macro-label">Fiber</span>
-          <strong class="sidebar-macro-value" id="s-fiber">0g</strong>
+          <div class="sidebar-macro-header">
+            <span class="sidebar-macro-label">Fiber</span>
+            <span class="sidebar-macro-fraction"><strong id="s-fiber">0g</strong><span class="s-goal"> / 28g</span></span>
+          </div>
+          <div class="sgb-wrap"><div class="sgb" id="sgb-fiber"></div></div>
         </div>
+
         <div class="sidebar-macro-row">
-          <span class="sidebar-macro-label">Sugar</span>
-          <strong class="sidebar-macro-value" id="s-sugar">0g</strong>
+          <div class="sidebar-macro-header">
+            <span class="sidebar-macro-label">Sugar</span>
+            <span class="sidebar-macro-fraction"><strong id="s-sugar">0g</strong><span class="s-goal"> / 50g lim</span></span>
+          </div>
+          <div class="sgb-wrap"><div class="sgb" id="sgb-sugar"></div></div>
         </div>
+
         <div class="sidebar-macro-row">
-          <span class="sidebar-macro-label">Sodium</span>
-          <strong class="sidebar-macro-value" id="s-sodium">0mg</strong>
+          <div class="sidebar-macro-header">
+            <span class="sidebar-macro-label">Sodium</span>
+            <span class="sidebar-macro-fraction"><strong id="s-sodium">0mg</strong><span class="s-goal"> / 2,300mg</span></span>
+          </div>
+          <div class="sgb-wrap"><div class="sgb" id="sgb-sodium"></div></div>
         </div>
 
         <div class="sidebar-divider"></div>
@@ -81,6 +108,15 @@
 
     <main class="myday-main">
       <h1 class="myday-main-title">My Day</h1>
+
+      <div id="daily-status-panel" class="daily-status-panel">
+        <div class="dsp-head">
+          <span class="dsp-badge" id="dsp-badge">No meals yet</span>
+          <p class="dsp-sub" id="dsp-sub">Add a meal from the analyzer to start tracking your day.</p>
+        </div>
+        <div class="dsp-recs" id="dsp-recs"></div>
+      </div>
+
       <div id="food-log-full"></div>
     </main>
 

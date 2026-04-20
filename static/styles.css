@@ -498,21 +498,9 @@ button.small { padding: 8px 16px; font-size: 0.88rem; }
   margin-bottom: 12px;
 }
 
-.sidebar-macro-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--line);
-}
-
 .sidebar-macro-label {
   font-size: 0.85rem;
   color: var(--muted);
-}
-
-.sidebar-macro-value {
-  font-size: 1rem;
 }
 
 .sidebar-divider {
@@ -654,6 +642,140 @@ button.small { padding: 8px 16px; font-size: 0.88rem; }
   gap: 6px 20px;
   padding-top: 12px;
   border-top: 1px solid var(--line);
+}
+
+/* ── Hand tip ── */
+.hand-tip {
+  margin: 10px 0 0;
+  font-size: 0.82rem;
+  color: var(--accent-dark);
+  background: rgba(199, 92, 49, 0.08);
+  border: 1px solid rgba(199, 92, 49, 0.2);
+  border-radius: 12px;
+  padding: 8px 14px;
+}
+
+/* ── Sidebar goal bars ── */
+.sidebar-macro-row {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sidebar-macro-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.sidebar-macro-fraction {
+  font-size: 0.82rem;
+}
+
+.s-goal {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.sgb-wrap {
+  height: 5px;
+  background: rgba(78, 57, 34, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.sgb {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  transition: width 0.4s ease, background 0.4s ease;
+}
+
+/* ── Daily status panel ── */
+.daily-status-panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  padding: 20px 24px;
+  margin-bottom: 24px;
+}
+
+.dsp-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.dsp-badge {
+  display: inline-block;
+  padding: 5px 16px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.dsp-badge--neutral {
+  background: rgba(78, 57, 34, 0.1);
+  color: var(--muted);
+}
+
+.dsp-badge--good {
+  background: rgba(76, 175, 80, 0.15);
+  color: #2e7d32;
+}
+
+.dsp-badge--warn {
+  background: rgba(255, 152, 0, 0.15);
+  color: #e65100;
+}
+
+.dsp-badge--over {
+  background: rgba(229, 57, 53, 0.12);
+  color: #c62828;
+}
+
+.dsp-sub {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.dsp-recs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rec-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(255, 245, 236, 0.8);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px 14px;
+}
+
+.rec-icon {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+  line-height: 1.5;
+}
+
+.rec-text {
+  font-size: 0.88rem;
+  color: var(--text);
+  line-height: 1.5;
 }
 
 /* ── Responsive ── */
