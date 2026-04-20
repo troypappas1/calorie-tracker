@@ -7,6 +7,32 @@
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
+
+  <!-- ── Intro screen ── -->
+  <div id="intro-screen" class="intro-screen">
+    <div class="intro-bg-orb intro-orb-1"></div>
+    <div class="intro-bg-orb intro-orb-2"></div>
+    <div class="intro-bg-orb intro-orb-3"></div>
+    <div class="intro-content">
+      <div class="intro-icon" aria-hidden="true">🥗</div>
+      <p class="intro-eyebrow">Food Nutrition Tracker</p>
+      <h1 class="intro-title">Know what you eat.</h1>
+      <p class="intro-sub">Photograph any meal for an instant nutrition breakdown. Sync across your devices with Google.</p>
+      <div class="intro-actions">
+        <button id="intro-sign-in-btn" class="intro-google-btn">
+          <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Sign in with Google
+        </button>
+        <button id="intro-guest-btn" class="intro-guest-btn">Continue as guest</button>
+      </div>
+    </div>
+  </div>
+
   <div id="user-chip" class="user-chip" hidden>
     <img class="user-chip-avatar" id="chip-avatar" alt="Profile photo" />
     <span class="user-chip-name" id="chip-name"></span>
@@ -194,6 +220,31 @@
   <script src="/app.js"></script>
   <script type="module">
     import { FIREBASE_CONFIG, FIREBASE_ENABLED } from '/firebase-config.js';
+
+    const intro      = document.getElementById('intro-screen');
+    const chip       = document.getElementById('user-chip');
+    const chipAvatar = document.getElementById('chip-avatar');
+    const chipName   = document.getElementById('chip-name');
+    const heroSignIn = document.getElementById('home-sign-in-btn');
+
+    function dismissIntro() {
+      intro.classList.add('intro-exit');
+      intro.addEventListener('animationend', () => intro.remove(), { once: true });
+    }
+
+    function showChip(user) {
+      chip.hidden = false;
+      heroSignIn.hidden = true;
+      chipAvatar.src = user.photoURL || '';
+      chipAvatar.style.display = user.photoURL ? 'block' : 'none';
+      chipName.textContent = user.displayName || user.email || '';
+    }
+
+    document.getElementById('intro-guest-btn').addEventListener('click', () => {
+      sessionStorage.setItem('ct-guest', '1');
+      dismissIntro();
+    });
+
     if (FIREBASE_ENABLED) {
       const [appMod, authMod] = await Promise.all([
         import('https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js'),
@@ -203,27 +254,34 @@
       const auth = authMod.getAuth(app);
       const { GoogleAuthProvider, signInWithPopup, onAuthStateChanged } = authMod;
 
-      const chip    = document.getElementById('user-chip');
-      const avatar  = document.getElementById('chip-avatar');
-      const nameEl  = document.getElementById('chip-name');
-      const signBtn = document.getElementById('home-sign-in-btn');
-
+      let resolved = false;
       onAuthStateChanged(auth, (user) => {
+        if (!resolved) {
+          resolved = true;
+          if (user || sessionStorage.getItem('ct-guest')) {
+            dismissIntro();
+          }
+          // else: intro stays visible
+        }
         if (user) {
-          chip.hidden    = false;
-          signBtn.hidden = true;
-          avatar.src     = user.photoURL || '';
-          avatar.style.display = user.photoURL ? 'block' : 'none';
-          nameEl.textContent   = user.displayName || user.email || '';
+          showChip(user);
         } else {
-          chip.hidden    = true;
-          signBtn.hidden = false;
+          chip.hidden = true;
+          heroSignIn.hidden = false;
         }
       });
 
-      signBtn.addEventListener('click', async () => {
+      document.getElementById('intro-sign-in-btn').addEventListener('click', async () => {
         try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch {}
       });
+
+      heroSignIn.addEventListener('click', async () => {
+        try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch {}
+      });
+
+    } else {
+      // Firebase not configured — skip intro if guest flag set, else show it
+      if (sessionStorage.getItem('ct-guest')) dismissIntro();
     }
   </script>
 </body>
