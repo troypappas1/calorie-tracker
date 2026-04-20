@@ -17,12 +17,16 @@ STATIC_DIR = ROOT / "static"
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
 
 NUTRITION_SCHEMA = (
-    '{"title": "dish name", "calories": 550, "proteinGrams": 25, "fatGrams": 18, '
+    '{"title": "dish name", "weightGrams": 350, "sizeDescription": "about the size of a tennis ball", '
+    '"calories": 550, "proteinGrams": 25, "fatGrams": 18, '
     '"carbsGrams": 60, "fiberGrams": 5, "sugarGrams": 8, "sodiumMg": 450, '
     '"vitaminA": 15, "vitaminC": 20, "calcium": 10, "iron": 8, '
     '"confidence": "High", "notes": ["short helpful note"]}'
 )
 NUTRITION_NOTES = (
+    "weightGrams is your best estimate of the total weight of the food in grams. "
+    "sizeDescription is a short everyday comparison like 'about the size of a tennis ball', "
+    "'roughly two fists', 'a standard dinner plate portion', etc. "
     "vitaminA, vitaminC, calcium, iron are % Daily Value as integers. "
     "confidence must be Low, Medium, or High. "
     "notes should have 1-2 short observations about the estimate."
@@ -40,6 +44,8 @@ class AnalyzeTextRequest(BaseModel):
 def mock_estimate() -> dict:
     return {
         "title": "Chicken rice bowl",
+        "weightGrams": 420,
+        "sizeDescription": "about the size of a large fist",
         "calories": 640,
         "proteinGrams": 38,
         "fatGrams": 14,

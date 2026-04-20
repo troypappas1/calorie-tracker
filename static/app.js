@@ -18,6 +18,9 @@ const notesList      = document.getElementById("notes-list");
 const addToDayRow    = document.getElementById("add-to-day-row");
 const addToDayButton = document.getElementById("add-to-day-button");
 const notesInput     = document.getElementById("notes-input");
+const sizeRow        = document.getElementById("size-row");
+const weightValue    = document.getElementById("weight-value");
+const sizeDesc       = document.getElementById("size-desc");
 
 let imageDataUrl = "";
 let currentResult = null;
@@ -149,6 +152,14 @@ function renderScaled(result, mult) {
   setVitaminBar("bar-vitC",    "vitC-value",    scale(result.vitaminC, mult));
   setVitaminBar("bar-calcium", "calcium-value", scale(result.calcium, mult));
   setVitaminBar("bar-iron",    "iron-value",    scale(result.iron, mult));
+
+  if (result.weightGrams != null) {
+    weightValue.textContent = `${scale(result.weightGrams, mult)}g`;
+    sizeDesc.textContent    = mult === 1
+      ? (result.sizeDescription || "--")
+      : `${result.sizeDescription || "--"} ×${mult}`;
+    sizeRow.hidden = false;
+  }
 }
 
 // --- Add to My Day ---
@@ -274,6 +285,7 @@ function resetResult() {
 
   confidenceValue.textContent = "--";
   notesList.innerHTML = "<li>Results will appear here after analysis.</li>";
+  sizeRow.hidden = true;
   servingSizeRow.hidden = true;
   addToDayRow.hidden = true;
   currentMultiplier = 1;
