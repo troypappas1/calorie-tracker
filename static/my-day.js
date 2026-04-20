@@ -27,12 +27,17 @@ if (FIREBASE_ENABLED) {
     });
   } catch (e) {
     console.warn('Firebase unavailable:', e.message);
-    document.getElementById('auth-section').hidden = true;
+    showNotConfigured();
     initWithoutFirebase();
   }
 } else {
-  document.getElementById('auth-section').hidden = true;
+  showNotConfigured();
   initWithoutFirebase();
+}
+
+function showNotConfigured() {
+  const hint = document.getElementById('auth-hint');
+  if (hint) hint.textContent = 'Firebase not set up — see firebase-config.js';
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -229,7 +234,10 @@ function updateAuthUI(user) {
 }
 
 document.getElementById('sign-in-btn').addEventListener('click', async () => {
-  if (!auth || !GoogleAuthProvider) return;
+  if (!auth || !GoogleAuthProvider) {
+    alert('Google Sign-In is not set up yet.\n\nOpen static/firebase-config.js and follow the instructions inside to connect your Firebase project.');
+    return;
+  }
   document.getElementById('auth-loading').hidden    = false;
   document.getElementById('auth-signed-out').hidden = true;
   try {
