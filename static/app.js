@@ -22,6 +22,7 @@ const notesInput     = document.getElementById("notes-input");
 let imageDataUrl = "";
 let currentResult = null;
 let currentSubTab = "photo";
+let currentMultiplier = 1;
 
 // --- Sub-tab switching ---
 document.querySelectorAll(".sub-tab").forEach((tab) => {
@@ -115,24 +116,61 @@ clearButton.addEventListener("click", () => {
   setStatus(currentSubTab === "photo" ? "Upload a photo to begin." : "Describe your meal to begin.");
 });
 
+// --- Serving size ---
+const servingSizeRow = document.getElementById("serving-size-row");
+
+document.querySelectorAll(".serving-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".serving-btn").forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentMultiplier = parseFloat(btn.dataset.mult);
+    if (currentResult) renderScaled(currentResult, currentMultiplier);
+  });
+});
+
+function scale(val, mult) {
+  return Math.round((val || 0) * mult);
+}
+
+function renderScaled(result, mult) {
+  const scaledTitle = mult === 1
+    ? result.title
+    : `${result.title} (${mult}×)`;
+  dishTitle.textContent     = scaledTitle;
+  caloriesValue.textContent = String(scale(result.calories, mult));
+  proteinValue.textContent  = `${scale(result.proteinGrams, mult)}g`;
+  fatValue.textContent      = `${scale(result.fatGrams, mult)}g`;
+  carbsValue.textContent    = `${scale(result.carbsGrams, mult)}g`;
+  fiberValue.textContent    = `${scale(result.fiberGrams, mult)}g`;
+  sugarValue.textContent    = `${scale(result.sugarGrams, mult)}g`;
+  sodiumValue.textContent   = `${scale(result.sodiumMg, mult)}mg`;
+
+  setVitaminBar("bar-vitA",    "vitA-value",    scale(result.vitaminA, mult));
+  setVitaminBar("bar-vitC",    "vitC-value",    scale(result.vitaminC, mult));
+  setVitaminBar("bar-calcium", "calcium-value", scale(result.calcium, mult));
+  setVitaminBar("bar-iron",    "iron-value",    scale(result.iron, mult));
+}
+
 // --- Add to My Day ---
 addToDayButton.addEventListener("click", async () => {
   if (!currentResult) return;
   const thumb = (currentSubTab === "photo" && imageDataUrl) ? await createThumbnail(imageDataUrl) : null;
+  const m = currentMultiplier;
+  const label = m === 1 ? currentResult.title : `${currentResult.title} (${m}×)`;
   addDayEntry({
     id: Date.now().toString(),
-    title:       currentResult.title,
-    calories:    currentResult.calories    || 0,
-    proteinGrams: currentResult.proteinGrams || 0,
-    fatGrams:    currentResult.fatGrams    || 0,
-    carbsGrams:  currentResult.carbsGrams  || 0,
-    fiberGrams:  currentResult.fiberGrams  || 0,
-    sugarGrams:  currentResult.sugarGrams  || 0,
-    sodiumMg:    currentResult.sodiumMg    || 0,
-    vitaminA:    currentResult.vitaminA    || 0,
-    vitaminC:    currentResult.vitaminC    || 0,
-    calcium:     currentResult.calcium     || 0,
-    iron:        currentResult.iron        || 0,
+    title:        label,
+    calories:     scale(currentResult.calories,    m),
+    proteinGrams: scale(currentResult.proteinGrams, m),
+    fatGrams:     scale(currentResult.fatGrams,    m),
+    carbsGrams:   scale(currentResult.carbsGrams,  m),
+    fiberGrams:   scale(currentResult.fiberGrams,  m),
+    sugarGrams:   scale(currentResult.sugarGrams,  m),
+    sodiumMg:     scale(currentResult.sodiumMg,    m),
+    vitaminA:     scale(currentResult.vitaminA,    m),
+    vitaminC:     scale(currentResult.vitaminC,    m),
+    calcium:      scale(currentResult.calcium,     m),
+    iron:         scale(currentResult.iron,        m),
     thumb,
   });
   addToDayButton.textContent = "Added!";
@@ -194,19 +232,12 @@ function setVitaminBar(barId, valueId, pct) {
 }
 
 function renderResult(result) {
-  dishTitle.textContent     = result.title;
-  caloriesValue.textContent = String(result.calories ?? "--");
-  proteinValue.textContent  = result.proteinGrams != null ? `${result.proteinGrams}g` : "--";
-  fatValue.textContent      = result.fatGrams      != null ? `${result.fatGrams}g`    : "--";
-  carbsValue.textContent    = result.carbsGrams    != null ? `${result.carbsGrams}g`  : "--";
-  fiberValue.textContent    = result.fiberGrams    != null ? `${result.fiberGrams}g`  : "--";
-  sugarValue.textContent    = result.sugarGrams    != null ? `${result.sugarGrams}g`  : "--";
-  sodiumValue.textContent   = result.sodiumMg      != null ? `${result.sodiumMg}mg`   : "--";
+  currentMultiplier = 1;
+  document.querySelectorAll(".serving-btn").forEach((b) => {
+    b.classList.toggle("active", b.dataset.mult === "1");
+  });
 
-  setVitaminBar("bar-vitA",    "vitA-value",    result.vitaminA);
-  setVitaminBar("bar-vitC",    "vitC-value",    result.vitaminC);
-  setVitaminBar("bar-calcium", "calcium-value", result.calcium);
-  setVitaminBar("bar-iron",    "iron-value",    result.iron);
+  renderScaled(result, 1);
 
   confidenceValue.textContent = result.confidence;
   const pillLabels = { anthropic: "Claude", mock: "Mock" };
@@ -219,6 +250,7 @@ function renderResult(result) {
     notesList.appendChild(li);
   }
 
+  servingSizeRow.hidden = false;
   addToDayRow.hidden = false;
   addToDayButton.textContent = "+ Add to My Day";
   addToDayButton.disabled = false;
@@ -242,7 +274,9 @@ function resetResult() {
 
   confidenceValue.textContent = "--";
   notesList.innerHTML = "<li>Results will appear here after analysis.</li>";
+  servingSizeRow.hidden = true;
   addToDayRow.hidden = true;
+  currentMultiplier = 1;
   currentResult = null;
 }
 

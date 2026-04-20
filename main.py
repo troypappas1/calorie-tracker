@@ -220,6 +220,11 @@ def index() -> FileResponse:
     return FileResponse(STATIC_DIR / "index.html")
 
 
+@app.get("/my-day")
+def my_day() -> FileResponse:
+    return FileResponse(STATIC_DIR / "my-day.html")
+
+
 @app.get("/{file_path:path}")
 def frontend_files(file_path: str):
     candidate = (STATIC_DIR / file_path).resolve()
