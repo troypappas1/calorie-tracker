@@ -854,6 +854,19 @@ button:active:not(:disabled) { transform: translateY(1px); }
   background: rgba(255,255,255,0.05);
 }
 
+.intro-signup-link {
+  margin: 0;
+  font-size: 0.86rem;
+  color: rgba(255,255,255,0.38);
+}
+
+.intro-link {
+  color: rgba(255,255,255,0.65);
+  text-decoration: none;
+  font-weight: 500;
+}
+.intro-link:hover { color: #fff; }
+
 /* ── Auth section (sidebar) ── */
 .auth-section {
   padding: 12px 0;

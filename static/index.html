@@ -26,9 +26,9 @@
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
           </svg>
-          Continue with Google
+          Sign in with Google
         </button>
-        <button id="intro-guest-btn" class="intro-guest-btn">Continue as guest →</button>
+        <a href="/signup" class="intro-guest-btn">Don't have an account? Sign up →</a>
       </div>
     </div>
   </div>
@@ -381,11 +381,6 @@
       chipName.textContent = (user.displayName || user.email || '').split(' ')[0];
     }
 
-    document.getElementById('intro-guest-btn').addEventListener('click', () => {
-      sessionStorage.setItem('ct-guest', '1');
-      dismissIntro();
-    });
-
     if (FIREBASE_ENABLED) {
       const [appMod, authMod] = await Promise.all([
         import('https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js'),
@@ -393,30 +388,20 @@
       ]);
       const app  = appMod.initializeApp(FIREBASE_CONFIG);
       const auth = authMod.getAuth(app);
-      const { GoogleAuthProvider, signInWithPopup, onAuthStateChanged } = authMod;
+      const { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } = authMod;
 
-      let introResolved = false;
-      function resolveIntro(user) {
-        if (introResolved) return;
-        introResolved = true;
-        const isReturning = Object.keys(localStorage).some(k => k.startsWith('ct_'));
-        if (user || sessionStorage.getItem('ct-guest') || isReturning) {
-          dismissIntro();
-        }
-      }
+      // Always sign out on page load so sign-in is required every visit.
+      await signOut(auth).catch(() => {});
 
       onAuthStateChanged(auth, (user) => {
-        resolveIntro(user);
         if (user) {
           showUser(user);
+          dismissIntro();
         } else {
           chip.hidden    = true;
           signBtn.hidden = false;
         }
       });
-
-      // Safety fallback: if auth doesn't resolve in 4s, let returning users through.
-      setTimeout(() => resolveIntro(null), 4000);
 
       async function doSignIn() {
         try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch {}
@@ -425,9 +410,6 @@
       signBtn.addEventListener('click', doSignIn);
 
     } else {
-      if (sessionStorage.getItem('ct-guest')) {
-        dismissIntro();
-      }
       signBtn.hidden = true;
     }
   </script>
