@@ -41,7 +41,10 @@ function showNotConfigured() {
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const TODAY = new Date().toISOString().slice(0, 10);
+function todayPT() {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+}
+const TODAY = todayPT();
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 function computeGoals() {

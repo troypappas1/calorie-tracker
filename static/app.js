@@ -204,7 +204,8 @@ function createThumbnail(dataUrl) {
 }
 
 function todayKey() {
-  return `ct_log_${new Date().toISOString().slice(0, 10)}`;
+  const d = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+  return `ct_log_${d}`;
 }
 
 function getDayEntries() {
