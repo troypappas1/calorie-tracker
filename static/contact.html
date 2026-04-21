@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact — Calorie Tracker</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+  <!-- ── Global nav ── -->
+  <header class="global-nav">
+    <div class="global-nav-inner">
+      <span class="nav-brand">🥗 Calorie Tracker</span>
+      <nav class="nav-tabs">
+        <a href="/" class="nav-tab">Analyze</a>
+        <a href="/my-day" class="nav-tab">My Day</a>
+        <a href="/contact" class="nav-tab active">Contact</a>
+      </nav>
+      <div class="nav-right"></div>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <p class="eyebrow">About the Creator</p>
+      <h1>Hey, I'm Troy.</h1>
+    </section>
+
+    <div class="contact-card">
+      <div class="contact-bio">
+        <p class="contact-text">
+          I'm a student and aspiring engineer from Northern California, building tools that make everyday life a little smarter. This calorie tracker started as a personal project to make nutrition tracking feel less like a chore — instant AI-powered analysis from a photo, no manual logging required.
+        </p>
+        <p class="contact-text">
+          I'm always open to feedback, ideas, or just a conversation about tech and building things. Feel free to reach out.
+        </p>
+      </div>
+
+      <div class="contact-links">
+        <a href="mailto:troy4pappas@gmail.com" class="contact-email-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="4" width="20" height="16" rx="2"/>
+            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+          </svg>
+          troy4pappas@gmail.com
+        </a>
+        <p class="contact-location">📍 Northern California</p>
+      </div>
+    </div>
+  </main>
+
+  <style>
+    .contact-card {
+      max-width: 620px;
+      margin: 0 auto 60px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--r-lg);
+      padding: 36px 40px;
+      box-shadow: var(--shadow);
+    }
+    .contact-bio { margin-bottom: 32px; }
+    .contact-text {
+      font-size: 1.05rem;
+      line-height: 1.75;
+      color: var(--text);
+      margin: 0 0 16px;
+    }
+    .contact-text:last-child { margin-bottom: 0; }
+    .contact-links {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding-top: 28px;
+      border-top: 1px solid var(--line);
+    }
+    .contact-email-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      padding: 13px 22px;
+      border-radius: var(--r-md);
+      transition: background 0.15s, transform 0.15s;
+      width: fit-content;
+    }
+    .contact-email-btn:hover {
+      background: var(--accent-dark);
+      transform: translateY(-1px);
+    }
+    .contact-location {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    @media (max-width: 600px) {
+      .contact-card { padding: 24px 20px; }
+    }
+  </style>
+
+</body>
+</html>

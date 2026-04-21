@@ -251,6 +251,11 @@ def signup() -> FileResponse:
     return FileResponse(STATIC_DIR / "signup.html")
 
 
+@app.get("/contact")
+def contact() -> FileResponse:
+    return FileResponse(STATIC_DIR / "contact.html")
+
+
 @app.get("/{file_path:path}")
 def frontend_files(file_path: str):
     candidate = (STATIC_DIR / file_path).resolve()
