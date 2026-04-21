@@ -698,31 +698,43 @@
         tooltip.className = 'tut-tooltip';
         tooltip.style.transform = '';
         tooltip.style.right = '';
-        const tw = 340, th = 240;
+        tooltip.style.top  = '';
+        tooltip.style.left = '';
+        const tw = 340;
+        const th = tooltip.offsetHeight || 320;
         const vw = window.innerWidth, vh = window.innerHeight;
         const margin = 16;
 
-        function clampTop(top) { return Math.max(margin, Math.min(top, vh - th - margin)); }
+        function clampTop(top)  { return Math.max(margin, Math.min(top, vh - th - margin)); }
         function clampLeft(left) { return Math.max(margin, Math.min(left, vw - tw - margin)); }
+
+        const fitsRight  = r.right  + tw + 20 < vw;
+        const fitsLeft   = r.left   - tw - 20 > 0;
+        const fitsBelow  = r.bottom + th + 16 + margin < vh;
+        const fitsAbove  = r.top    - th - 16 - margin > 0;
 
         if (s.position === 'center') {
           tooltip.className = 'tut-tooltip tut-tooltip--center';
-        } else if (s.position === 'right' && r.right + tw + 20 < vw) {
+        } else if (s.position === 'right' && fitsRight) {
           tooltip.style.top  = `${clampTop(r.top)}px`;
           tooltip.style.left = `${r.right + 20}px`;
-        } else if (s.position === 'left' && r.left - tw - 20 > 0) {
+        } else if (s.position === 'left' && fitsLeft) {
           tooltip.style.top  = `${clampTop(r.top)}px`;
           tooltip.style.left = `${r.left - tw - 20}px`;
-        } else if (s.position === 'below') {
-          const top = r.bottom + 16;
-          // If tooltip would go off bottom, place above instead
-          const fitsBelow = top + th + margin < vh;
-          tooltip.style.top  = fitsBelow ? `${top}px` : `${Math.max(margin, r.top - th - 16)}px`;
+        } else if (s.position === 'below' || (!fitsRight && !fitsLeft)) {
+          if (fitsBelow) {
+            tooltip.style.top  = `${r.bottom + 16}px`;
+          } else if (fitsAbove) {
+            tooltip.style.top  = `${r.top - th - 16}px`;
+          } else {
+            // Not enough room above or below — pin near bottom of viewport
+            tooltip.style.top = `${vh - th - margin}px`;
+          }
           tooltip.style.left = `${clampLeft(r.left)}px`;
         } else {
-          // Fallback: center vertically beside element, clamped
-          tooltip.style.top  = `${clampTop(r.top)}px`;
-          tooltip.style.left = `${clampLeft(r.left)}px`;
+          // Generic fallback: centered vertically beside element, fully clamped
+          tooltip.style.top  = `${clampTop(r.top + r.height / 2 - th / 2)}px`;
+          tooltip.style.left = `${clampLeft(fitsRight ? r.right + 20 : r.left - tw - 20)}px`;
         }
       }, 300);
     }
