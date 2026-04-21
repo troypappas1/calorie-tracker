@@ -113,7 +113,6 @@
         <a href="/contact" class="nav-tab">Contact</a>
       </nav>
       <div class="nav-right">
-        <button id="tutorial-btn" class="tutorial-nav-btn" hidden>How it works</button>
         <div class="user-menu-wrap" id="user-menu-wrap" hidden>
           <button class="user-chip" id="user-chip" aria-haspopup="true" aria-expanded="false">
             <img class="user-chip-avatar" id="chip-avatar" alt="Profile photo" />
@@ -502,7 +501,6 @@
     function showUser(user) {
       menuWrap.hidden = false;
       signBtn.hidden  = true;
-      document.getElementById('tutorial-btn').hidden = false;
       chipAvatar.src = user.photoURL || '';
       chipAvatar.style.display = user.photoURL ? 'block' : 'none';
       chipName.textContent = (user.displayName || user.email || '').split(' ')[0];
@@ -528,7 +526,7 @@
     // Tutorial item inside dropdown
     document.getElementById('dd-tutorial').addEventListener('click', () => {
       window.closeDropdown && window.closeDropdown();
-      document.getElementById('tutorial-btn').click();
+      window.startTutorial && window.startTutorial();
     });
 
     if (FIREBASE_ENABLED) {
@@ -670,8 +668,11 @@
       nextBtn.textContent = i === STEPS.length - 1 ? 'Finish ✓' : 'Next →';
 
       if (!s.target) {
-        // Centre tooltip, no spotlight
+        // Centre tooltip, no spotlight — clear any leftover inline positioning first
         spotlight.style.cssText = 'opacity:0';
+        tooltip.style.top = '';
+        tooltip.style.left = '';
+        tooltip.style.transform = '';
         tooltip.className = 'tut-tooltip tut-tooltip--center';
         return;
       }
@@ -744,6 +745,7 @@
       overlay.hidden = false;
       showStep(step);
     }
+    window.startTutorial = startTutorial;
 
     function endTutorial() {
       overlay.hidden = true;
@@ -762,8 +764,6 @@
     });
     skipBtn.addEventListener('click', endTutorial);
     overlay.addEventListener('click', e => { if (e.target === overlay) endTutorial(); });
-
-    document.getElementById('tutorial-btn').addEventListener('click', startTutorial);
 
     // Auto-launch tutorial on first ever visit (only once)
     if (!localStorage.getItem('ct_tutorial_seen')) {
