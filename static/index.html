@@ -9,7 +9,7 @@
 <body>
 
   <!-- ── Intro screen ── -->
-  <div id="intro-screen" class="intro-screen">
+  <div id="intro-screen" class="intro-screen" style="visibility:hidden">
     <div class="intro-bg-orb intro-orb-1"></div>
     <div class="intro-bg-orb intro-orb-2"></div>
     <div class="intro-bg-orb intro-orb-3"></div>
@@ -393,6 +393,9 @@
       // Force sign-in on fresh visits, but not when navigating within the app.
       if (!sessionStorage.getItem('ct-authed')) {
         await signOut(auth).catch(() => {});
+        intro.style.visibility = 'visible';
+      } else {
+        intro.remove();
       }
 
       onAuthStateChanged(auth, (user) => {
