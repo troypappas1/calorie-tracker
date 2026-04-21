@@ -48,21 +48,61 @@ function computeGoals() {
   try {
     const p = JSON.parse(localStorage.getItem('ct_profile') || '{}');
     if (!p.weight || !p.height || !p.age) return defaultGoals();
+
     // Mifflin-St Jeor BMR
     const bmr = p.sex === 'female'
       ? 10 * p.weight + 6.25 * p.height - 5 * p.age - 161
       : 10 * p.weight + 6.25 * p.height - 5 * p.age + 5;
-    const tdee = Math.round(bmr * 1.55); // moderate activity
-    const cal = p.goal === 'lose' ? tdee - 500 : p.goal === 'gain' ? tdee + 300 : tdee;
-    const protein = Math.round(p.weight * (p.goal === 'gain' ? 2 : 1.6));
-    const fat     = Math.round(cal * 0.28 / 9);
-    const carbs   = Math.round((cal - protein * 4 - fat * 9) / 4);
-    return { calories: cal, protein, carbs, fat, fiber: 28, sugar: 50, sodium: 2300 };
+    const tdee = Math.round(bmr * 1.55);
+    const cal  = p.goal === 'lose' ? Math.max(tdee - 500, 1200) : p.goal === 'gain' ? tdee + 300 : tdee;
+
+    // Protein: 0.8g/kg maintain, 1.2g/kg lose (preserve muscle), 1.6g/kg gain (build muscle)
+    const proteinRate = p.goal === 'gain' ? 1.6 : p.goal === 'lose' ? 1.2 : 0.8;
+    const protein = Math.round(p.weight * proteinRate);
+
+    // Fat: 25-35% of calories; use 30%
+    const fat   = Math.round(cal * 0.30 / 9);
+
+    // Carbs: remaining calories after protein and fat
+    const carbs = Math.round((cal - protein * 4 - fat * 9) / 4);
+
+    // Fiber: 14g per 1000 kcal (DRI), capped at 38g men / 25g women
+    const fiberMax = p.sex === 'female' ? 25 : 38;
+    const fiber = Math.min(Math.round(cal / 1000 * 14), fiberMax);
+
+    // Sugar limit: <10% of calories (WHO)
+    const sugar = Math.round(cal * 0.10 / 4);
+
+    // Sodium: 2300mg all adults (AHA)
+    const sodium = 2300;
+
+    // Vitamins & minerals — DRI by sex and age (% Daily Value targets as mg/mcg)
+    // We track as % DV so targets are always 100 for each micronutrient
+    // but we store the actual DV reference amounts for tooltip/display purposes
+    const female = p.sex === 'female';
+    const age    = p.age;
+
+    // Vitamin A (mcg RAE): 700 women, 900 men
+    const vitA_dv  = female ? 700 : 900;
+    // Vitamin C (mg): 75 women, 90 men; +35 smokers (unknown, ignore)
+    const vitC_dv  = female ? 75 : 90;
+    // Calcium (mg): varies significantly by age
+    const calcium_dv = age < 19 ? 1300 : age <= 50 ? 1000 : female ? 1200 : 1000;
+    // Iron (mg): 18 women 19-50, 8 otherwise
+    const iron_dv = female && age >= 19 && age <= 50 ? 18 : 8;
+
+    return {
+      calories: cal, protein, carbs, fat, fiber, sugar, sodium,
+      vitA_dv, vitC_dv, calcium_dv, iron_dv,
+    };
   } catch { return defaultGoals(); }
 }
 
 function defaultGoals() {
-  return { calories: 2000, protein: 50, carbs: 275, fat: 78, fiber: 28, sugar: 50, sodium: 2300 };
+  return {
+    calories: 2000, protein: 50, carbs: 275, fat: 65, fiber: 28, sugar: 50, sodium: 2300,
+    vitA_dv: 900, vitC_dv: 90, calcium_dv: 1000, iron_dv: 8,
+  };
 }
 
 let GOALS = computeGoals();
@@ -405,10 +445,13 @@ async function render(dateStr) {
   setSidebarGoalBar('sgb-sugar',    t.sugar,    GOALS.sugar,    true);
   setSidebarGoalBar('sgb-sodium',   t.sodium,   GOALS.sodium,   true);
 
-  setVitBar('s-bar-vitA',    's-vitA',    t.vitA);
-  setVitBar('s-bar-vitC',    's-vitC',    t.vitC);
-  setVitBar('s-bar-calcium', 's-calcium', t.calcium);
-  setVitBar('s-bar-iron',    's-iron',    t.iron);
+  // Scale % DV from AI (based on FDA label DVs) to personalized DVs.
+  // FDA label reference DVs: vitA=900mcg, vitC=90mg, calcium=1300mg, iron=18mg
+  const scaleVit = (pct, fdaDv, personalDv) => Math.round(pct * (fdaDv / personalDv));
+  setVitBar('s-bar-vitA',    's-vitA',    scaleVit(t.vitA,    900,  GOALS.vitA_dv));
+  setVitBar('s-bar-vitC',    's-vitC',    scaleVit(t.vitC,    90,   GOALS.vitC_dv));
+  setVitBar('s-bar-calcium', 's-calcium', scaleVit(t.calcium, 1300, GOALS.calcium_dv));
+  setVitBar('s-bar-iron',    's-iron',    scaleVit(t.iron,    18,   GOALS.iron_dv));
 
   // Status panel
   const status = overallStatus(t, entries);
