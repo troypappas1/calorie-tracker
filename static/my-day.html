@@ -7,9 +7,85 @@
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body class="my-day-page">
-  <div id="user-chip" class="user-chip" hidden>
-    <img class="user-chip-avatar" id="chip-avatar" alt="Profile photo" />
-    <span class="user-chip-name" id="chip-name"></span>
+
+  <!-- ── Global nav ── -->
+  <header class="global-nav">
+    <div class="global-nav-inner">
+      <span class="nav-brand">🥗 Calorie Tracker</span>
+      <nav class="nav-tabs">
+        <a href="/" class="nav-tab">Analyze</a>
+        <button class="nav-tab active">My Day</button>
+        <button class="nav-tab" id="nav-profile-btn">Profile</button>
+      </nav>
+      <div class="nav-right">
+        <div id="user-chip" class="user-chip" hidden>
+          <img class="user-chip-avatar" id="chip-avatar" alt="Profile photo" />
+          <span class="user-chip-name" id="chip-name"></span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Profile modal ── -->
+  <div id="profile-modal" class="modal-overlay" hidden>
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 class="modal-title">Your Profile</h2>
+        <button class="modal-close" id="profile-close" aria-label="Close">✕</button>
+      </div>
+      <p class="modal-sub">Used to calculate your personalized daily nutrition goals.</p>
+      <div class="profile-form">
+        <div class="profile-row">
+          <div class="profile-field">
+            <label class="profile-label">Age</label>
+            <input id="p-age" class="profile-input" type="number" min="10" max="100" placeholder="25">
+          </div>
+          <div class="profile-field">
+            <label class="profile-label">Sex</label>
+            <select id="p-sex" class="profile-input">
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+          </div>
+        </div>
+        <div class="profile-row">
+          <div class="profile-field">
+            <label class="profile-label">Weight</label>
+            <div class="profile-input-group">
+              <input id="p-weight" class="profile-input" type="number" min="30" max="300" placeholder="70">
+              <span class="profile-unit">kg</span>
+            </div>
+          </div>
+          <div class="profile-field">
+            <label class="profile-label">Height</label>
+            <div class="profile-input-group">
+              <input id="p-height" class="profile-input" type="number" min="100" max="250" placeholder="170">
+              <span class="profile-unit">cm</span>
+            </div>
+          </div>
+        </div>
+        <div class="profile-field">
+          <label class="profile-label">Goal</label>
+          <div class="profile-goal-btns">
+            <button class="goal-btn" data-goal="lose">Lose weight</button>
+            <button class="goal-btn active" data-goal="maintain">Maintain</button>
+            <button class="goal-btn" data-goal="gain">Gain weight</button>
+          </div>
+        </div>
+        <div class="profile-field">
+          <label class="profile-label">Hand width <span class="profile-hint">(for portion scale)</span></label>
+          <div class="profile-input-group">
+            <input id="p-hand" class="profile-input" type="number" min="5" max="15" step="0.1" placeholder="8.5">
+            <span class="profile-unit">cm</span>
+          </div>
+          <p class="profile-field-note">Measure across your knuckles. Used to improve food weight estimates.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="profile-save" class="primary">Save Profile</button>
+        <p class="modal-saved-msg" id="profile-saved-msg" hidden>✓ Saved</p>
+      </div>
+    </div>
   </div>
 
   <div class="myday-layout">
@@ -21,7 +97,7 @@
       </div>
 
       <nav class="sidebar-nav">
-        <a href="/" class="sidebar-back">&#8592; Back to Analyzer</a>
+        <a href="/" class="sidebar-back">&#8592; Analyzer</a>
         <button id="clear-day-btn" class="secondary small">Clear Day</button>
       </nav>
 
@@ -37,7 +113,7 @@
             </svg>
             Sign in with Google
           </button>
-          <p class="auth-hint">Sync your log across devices</p>
+          <p class="auth-hint" id="auth-hint">Sync your log across devices</p>
         </div>
         <div id="auth-signed-in" class="auth-signed-in" hidden>
           <img class="user-avatar" id="user-avatar" alt="Profile photo" />
@@ -59,76 +135,79 @@
         <div class="sidebar-macro-row">
           <div class="sidebar-macro-header">
             <span class="sidebar-macro-label">Calories</span>
-            <span class="sidebar-macro-fraction"><strong id="s-calories">0</strong><span class="s-goal"> / 2,000</span></span>
+            <span class="sidebar-macro-fraction"><strong id="s-calories">0</strong><span class="s-goal" id="goal-label-calories"> / 2,000</span></span>
           </div>
           <div class="sgb-wrap"><div class="sgb" id="sgb-calories"></div></div>
         </div>
         <div class="sidebar-macro-row">
           <div class="sidebar-macro-header">
             <span class="sidebar-macro-label">Protein</span>
-            <span class="sidebar-macro-fraction"><strong id="s-protein">0g</strong><span class="s-goal"> / 50g</span></span>
+            <span class="sidebar-macro-fraction"><strong id="s-protein">0g</strong><span class="s-goal" id="goal-label-protein"> / 50g</span></span>
           </div>
           <div class="sgb-wrap"><div class="sgb" id="sgb-protein"></div></div>
         </div>
         <div class="sidebar-macro-row">
           <div class="sidebar-macro-header">
             <span class="sidebar-macro-label">Carbs</span>
-            <span class="sidebar-macro-fraction"><strong id="s-carbs">0g</strong><span class="s-goal"> / 275g</span></span>
+            <span class="sidebar-macro-fraction"><strong id="s-carbs">0g</strong><span class="s-goal" id="goal-label-carbs"> / 275g</span></span>
           </div>
           <div class="sgb-wrap"><div class="sgb" id="sgb-carbs"></div></div>
         </div>
         <div class="sidebar-macro-row">
           <div class="sidebar-macro-header">
             <span class="sidebar-macro-label">Fat</span>
-            <span class="sidebar-macro-fraction"><strong id="s-fat">0g</strong><span class="s-goal"> / 78g</span></span>
+            <span class="sidebar-macro-fraction"><strong id="s-fat">0g</strong><span class="s-goal" id="goal-label-fat"> / 78g</span></span>
           </div>
           <div class="sgb-wrap"><div class="sgb" id="sgb-fat"></div></div>
         </div>
         <div class="sidebar-macro-row">
           <div class="sidebar-macro-header">
             <span class="sidebar-macro-label">Fiber</span>
-            <span class="sidebar-macro-fraction"><strong id="s-fiber">0g</strong><span class="s-goal"> / 28g</span></span>
+            <span class="sidebar-macro-fraction"><strong id="s-fiber">0g</strong><span class="s-goal" id="goal-label-fiber"> / 28g</span></span>
           </div>
           <div class="sgb-wrap"><div class="sgb" id="sgb-fiber"></div></div>
         </div>
         <div class="sidebar-macro-row">
           <div class="sidebar-macro-header">
             <span class="sidebar-macro-label">Sugar</span>
-            <span class="sidebar-macro-fraction"><strong id="s-sugar">0g</strong><span class="s-goal"> / 50g lim</span></span>
+            <span class="sidebar-macro-fraction"><strong id="s-sugar">0g</strong><span class="s-goal" id="goal-label-sugar"> / 50g lim</span></span>
           </div>
           <div class="sgb-wrap"><div class="sgb" id="sgb-sugar"></div></div>
         </div>
         <div class="sidebar-macro-row">
           <div class="sidebar-macro-header">
             <span class="sidebar-macro-label">Sodium</span>
-            <span class="sidebar-macro-fraction"><strong id="s-sodium">0mg</strong><span class="s-goal"> / 2,300mg</span></span>
+            <span class="sidebar-macro-fraction"><strong id="s-sodium">0mg</strong><span class="s-goal" id="goal-label-sodium"> / 2,300mg</span></span>
           </div>
           <div class="sgb-wrap"><div class="sgb" id="sgb-sodium"></div></div>
         </div>
 
         <div class="sidebar-divider"></div>
-        <h3 class="sidebar-section-heading">Vitamins &amp; Minerals</h3>
-        <p class="sidebar-dv-note">% Daily Value (cumulative)</p>
 
-        <div class="vitamin-item sidebar-vitamin">
-          <span class="vitamin-label">Vitamin A</span>
-          <div class="vitamin-bar-wrap"><div class="vitamin-bar" id="s-bar-vitA"></div></div>
-          <span class="vitamin-pct" id="s-vitA">0%</span>
-        </div>
-        <div class="vitamin-item sidebar-vitamin">
-          <span class="vitamin-label">Vitamin C</span>
-          <div class="vitamin-bar-wrap"><div class="vitamin-bar" id="s-bar-vitC"></div></div>
-          <span class="vitamin-pct" id="s-vitC">0%</span>
-        </div>
-        <div class="vitamin-item sidebar-vitamin">
-          <span class="vitamin-label">Calcium</span>
-          <div class="vitamin-bar-wrap"><div class="vitamin-bar" id="s-bar-calcium"></div></div>
-          <span class="vitamin-pct" id="s-calcium">0%</span>
-        </div>
-        <div class="vitamin-item sidebar-vitamin">
-          <span class="vitamin-label">Iron</span>
-          <div class="vitamin-bar-wrap"><div class="vitamin-bar" id="s-bar-iron"></div></div>
-          <span class="vitamin-pct" id="s-iron">0%</span>
+        <!-- Vitamins toggle button -->
+        <button class="vitamins-toggle-btn" id="sidebar-vitamins-toggle">Vitamins &amp; Minerals ▾</button>
+        <div id="sidebar-vitamins-section">
+          <p class="sidebar-dv-note">% Daily Value (cumulative)</p>
+          <div class="vitamin-item sidebar-vitamin">
+            <span class="vitamin-label">Vitamin A</span>
+            <div class="vitamin-bar-wrap"><div class="vitamin-bar" id="s-bar-vitA"></div></div>
+            <span class="vitamin-pct" id="s-vitA">0%</span>
+          </div>
+          <div class="vitamin-item sidebar-vitamin">
+            <span class="vitamin-label">Vitamin C</span>
+            <div class="vitamin-bar-wrap"><div class="vitamin-bar" id="s-bar-vitC"></div></div>
+            <span class="vitamin-pct" id="s-vitC">0%</span>
+          </div>
+          <div class="vitamin-item sidebar-vitamin">
+            <span class="vitamin-label">Calcium</span>
+            <div class="vitamin-bar-wrap"><div class="vitamin-bar" id="s-bar-calcium"></div></div>
+            <span class="vitamin-pct" id="s-calcium">0%</span>
+          </div>
+          <div class="vitamin-item sidebar-vitamin">
+            <span class="vitamin-label">Iron</span>
+            <div class="vitamin-bar-wrap"><div class="vitamin-bar" id="s-bar-iron"></div></div>
+            <span class="vitamin-pct" id="s-iron">0%</span>
+          </div>
         </div>
       </div>
     </aside>
@@ -166,6 +245,72 @@
 
     </main>
   </div>
+
+  <!-- Vitamins sidebar toggle -->
+  <script>
+    document.getElementById('sidebar-vitamins-toggle').addEventListener('click', function() {
+      const sec = document.getElementById('sidebar-vitamins-section');
+      const open = sec.style.display !== 'none' && sec.style.display !== '';
+      sec.style.display = open ? 'none' : '';
+      this.textContent = open ? 'Vitamins & Minerals ▾' : 'Vitamins & Minerals ▴';
+    });
+  </script>
+
+  <!-- Profile modal -->
+  <script>
+    (function() {
+      const PROFILE_KEY = 'ct_profile';
+      function loadProfile() {
+        try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}'); } catch { return {}; }
+      }
+      function saveProfile(p) { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); }
+
+      const modal = document.getElementById('profile-modal');
+      function openModal() {
+        const p = loadProfile();
+        document.getElementById('p-age').value    = p.age    || '';
+        document.getElementById('p-sex').value    = p.sex    || 'male';
+        document.getElementById('p-weight').value = p.weight || '';
+        document.getElementById('p-height').value = p.height || '';
+        document.getElementById('p-hand').value   = p.hand   || '';
+        document.querySelectorAll('.goal-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.goal === (p.goal || 'maintain'));
+        });
+        document.getElementById('profile-saved-msg').hidden = true;
+        modal.hidden = false;
+        requestAnimationFrame(() => modal.classList.add('modal-visible'));
+      }
+      function closeModal() {
+        modal.classList.remove('modal-visible');
+        modal.addEventListener('transitionend', () => { modal.hidden = true; }, { once: true });
+      }
+
+      document.getElementById('nav-profile-btn').addEventListener('click', openModal);
+      document.getElementById('profile-close').addEventListener('click', closeModal);
+      modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+      document.querySelectorAll('.goal-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.goal-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        });
+      });
+
+      document.getElementById('profile-save').addEventListener('click', () => {
+        const goal = document.querySelector('.goal-btn.active')?.dataset.goal || 'maintain';
+        saveProfile({
+          age:    parseFloat(document.getElementById('p-age').value)    || null,
+          sex:    document.getElementById('p-sex').value,
+          weight: parseFloat(document.getElementById('p-weight').value) || null,
+          height: parseFloat(document.getElementById('p-height').value) || null,
+          hand:   parseFloat(document.getElementById('p-hand').value)   || null,
+          goal,
+        });
+        document.getElementById('profile-saved-msg').hidden = false;
+        setTimeout(closeModal, 800);
+      });
+    })();
+  </script>
 
   <script type="module" src="/my-day.js"></script>
 </body>

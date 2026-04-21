@@ -14,10 +14,10 @@
     <div class="intro-bg-orb intro-orb-2"></div>
     <div class="intro-bg-orb intro-orb-3"></div>
     <div class="intro-content">
-      <div class="intro-icon" aria-hidden="true">🥗</div>
+      <div class="intro-logo" aria-hidden="true">🥗</div>
       <p class="intro-eyebrow">Food Nutrition Tracker</p>
-      <h1 class="intro-title">Know what you eat.</h1>
-      <p class="intro-sub">Photograph any meal for an instant nutrition breakdown. Sync across your devices with Google.</p>
+      <h1 class="intro-title">Know what<br>you eat.</h1>
+      <p class="intro-sub">Photograph any meal for an instant nutrition breakdown. Sync across devices with Google.</p>
       <div class="intro-actions">
         <button id="intro-sign-in-btn" class="intro-google-btn">
           <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -26,40 +26,109 @@
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
           </svg>
-          Sign in with Google
+          Continue with Google
         </button>
-        <button id="intro-guest-btn" class="intro-guest-btn">Continue as guest</button>
+        <button id="intro-guest-btn" class="intro-guest-btn">Continue as guest →</button>
       </div>
     </div>
   </div>
 
-  <div id="user-chip" class="user-chip" hidden>
-    <img class="user-chip-avatar" id="chip-avatar" alt="Profile photo" />
-    <span class="user-chip-name" id="chip-name"></span>
+  <!-- ── Global nav ── -->
+  <header class="global-nav">
+    <div class="global-nav-inner">
+      <span class="nav-brand">🥗 Calorie Tracker</span>
+      <nav class="nav-tabs">
+        <button class="nav-tab active" id="nav-analyze">Analyze</button>
+        <a href="/my-day" class="nav-tab">My Day</a>
+        <button class="nav-tab" id="nav-profile-btn">Profile</button>
+      </nav>
+      <div class="nav-right">
+        <div id="user-chip" class="user-chip" hidden>
+          <img class="user-chip-avatar" id="chip-avatar" alt="Profile photo" />
+          <span class="user-chip-name" id="chip-name"></span>
+        </div>
+        <button id="home-sign-in-btn" class="nav-sign-in-btn">
+          <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Sign in
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Profile modal ── -->
+  <div id="profile-modal" class="modal-overlay" hidden>
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 class="modal-title">Your Profile</h2>
+        <button class="modal-close" id="profile-close" aria-label="Close">✕</button>
+      </div>
+      <p class="modal-sub">Used to calculate your personalized daily nutrition goals.</p>
+      <div class="profile-form">
+        <div class="profile-row">
+          <div class="profile-field">
+            <label class="profile-label">Age</label>
+            <input id="p-age" class="profile-input" type="number" min="10" max="100" placeholder="25">
+          </div>
+          <div class="profile-field">
+            <label class="profile-label">Sex</label>
+            <select id="p-sex" class="profile-input">
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+          </div>
+        </div>
+        <div class="profile-row">
+          <div class="profile-field">
+            <label class="profile-label">Weight</label>
+            <div class="profile-input-group">
+              <input id="p-weight" class="profile-input" type="number" min="30" max="300" placeholder="70">
+              <span class="profile-unit">kg</span>
+            </div>
+          </div>
+          <div class="profile-field">
+            <label class="profile-label">Height</label>
+            <div class="profile-input-group">
+              <input id="p-height" class="profile-input" type="number" min="100" max="250" placeholder="170">
+              <span class="profile-unit">cm</span>
+            </div>
+          </div>
+        </div>
+        <div class="profile-field">
+          <label class="profile-label">Goal</label>
+          <div class="profile-goal-btns">
+            <button class="goal-btn" data-goal="lose">Lose weight</button>
+            <button class="goal-btn active" data-goal="maintain">Maintain</button>
+            <button class="goal-btn" data-goal="gain">Gain weight</button>
+          </div>
+        </div>
+        <div class="profile-field">
+          <label class="profile-label">Hand width <span class="profile-hint">(for portion scale)</span></label>
+          <div class="profile-input-group">
+            <input id="p-hand" class="profile-input" type="number" min="5" max="15" step="0.1" placeholder="8.5">
+            <span class="profile-unit">cm</span>
+          </div>
+          <p class="profile-field-note">Measure across your knuckles. Used to improve food weight estimates.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="profile-save" class="primary">Save Profile</button>
+        <p class="modal-saved-msg" id="profile-saved-msg" hidden>✓ Saved</p>
+      </div>
+    </div>
   </div>
 
+  <!-- ── Main content ── -->
   <main class="page">
     <section class="hero">
       <p class="eyebrow">Food Nutrition Tracker</p>
-      <h1>Track what you eat.</h1>
-      <p class="lede">
-        Photograph a meal for a full nutrition breakdown. Add a note to identify the brand or quality.
-      </p>
-      <button id="home-sign-in-btn" class="sign-in-hero-btn">
-        <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-        </svg>
-        Sign in with Google
-      </button>
+      <h1>Know what<br>you eat.</h1>
+      <p class="lede">Photograph a meal for a full nutrition breakdown. Add a note to identify the brand or quality.</p>
     </section>
-
-    <nav class="tab-bar">
-      <button class="tab active">Analyze</button>
-      <a href="/my-day" class="tab my-day-link">My Day</a>
-    </nav>
 
     <div id="tab-analyze" class="tab-content">
       <section class="panel uploader-panel">
@@ -70,6 +139,7 @@
 
         <label class="upload-zone" for="photo-input" id="upload-zone">
           <input id="photo-input" type="file" accept="image/*">
+          <span class="upload-icon" aria-hidden="true">📷</span>
           <span class="upload-title">Choose a food photo</span>
           <span class="upload-subtitle">Place your hand next to the food for a more accurate size estimate</span>
         </label>
@@ -150,8 +220,8 @@
           </article>
         </div>
 
-        <div class="vitamins-section">
-          <h3 class="vitamins-heading">Vitamins &amp; Minerals <span class="dv-note">% Daily Value</span></h3>
+        <button class="vitamins-toggle-btn" id="vitamins-toggle">Vitamins &amp; Minerals ▾</button>
+        <div class="vitamins-section" id="vitamins-section" hidden>
           <div class="vitamins-grid">
             <div class="vitamin-item">
               <span class="vitamin-label">Vitamin A</span>
@@ -218,6 +288,77 @@
   </main>
 
   <script src="/app.js"></script>
+
+  <!-- Vitamins toggle -->
+  <script>
+    document.getElementById('vitamins-toggle').addEventListener('click', function() {
+      const sec = document.getElementById('vitamins-section');
+      const open = !sec.hidden;
+      sec.hidden = open;
+      this.textContent = open ? 'Vitamins & Minerals ▾' : 'Vitamins & Minerals ▴';
+    });
+  </script>
+
+  <!-- Profile modal -->
+  <script>
+    (function() {
+      const PROFILE_KEY = 'ct_profile';
+      function loadProfile() {
+        try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}'); } catch { return {}; }
+      }
+      function saveProfile(p) {
+        localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
+      }
+
+      const modal = document.getElementById('profile-modal');
+      function openModal() {
+        const p = loadProfile();
+        document.getElementById('p-age').value    = p.age    || '';
+        document.getElementById('p-sex').value    = p.sex    || 'male';
+        document.getElementById('p-weight').value = p.weight || '';
+        document.getElementById('p-height').value = p.height || '';
+        document.getElementById('p-hand').value   = p.hand   || '';
+        document.querySelectorAll('.goal-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.goal === (p.goal || 'maintain'));
+        });
+        document.getElementById('profile-saved-msg').hidden = true;
+        modal.hidden = false;
+        requestAnimationFrame(() => modal.classList.add('modal-visible'));
+      }
+      function closeModal() {
+        modal.classList.remove('modal-visible');
+        modal.addEventListener('transitionend', () => { modal.hidden = true; }, { once: true });
+      }
+
+      document.getElementById('nav-profile-btn').addEventListener('click', openModal);
+      document.getElementById('profile-close').addEventListener('click', closeModal);
+      modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+      document.querySelectorAll('.goal-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.goal-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        });
+      });
+
+      document.getElementById('profile-save').addEventListener('click', () => {
+        const goal = document.querySelector('.goal-btn.active')?.dataset.goal || 'maintain';
+        const p = {
+          age:    parseFloat(document.getElementById('p-age').value)    || null,
+          sex:    document.getElementById('p-sex').value,
+          weight: parseFloat(document.getElementById('p-weight').value) || null,
+          height: parseFloat(document.getElementById('p-height').value) || null,
+          hand:   parseFloat(document.getElementById('p-hand').value)   || null,
+          goal,
+        };
+        saveProfile(p);
+        document.getElementById('profile-saved-msg').hidden = false;
+        setTimeout(closeModal, 800);
+      });
+    })();
+  </script>
+
+  <!-- Firebase auth -->
   <script type="module">
     import { FIREBASE_CONFIG, FIREBASE_ENABLED } from '/firebase-config.js';
 
@@ -225,19 +366,19 @@
     const chip       = document.getElementById('user-chip');
     const chipAvatar = document.getElementById('chip-avatar');
     const chipName   = document.getElementById('chip-name');
-    const heroSignIn = document.getElementById('home-sign-in-btn');
+    const signBtn    = document.getElementById('home-sign-in-btn');
 
     function dismissIntro() {
       intro.classList.add('intro-exit');
-      intro.addEventListener('animationend', () => intro.remove(), { once: true });
+      setTimeout(() => intro.remove(), 500);
     }
 
-    function showChip(user) {
-      chip.hidden = false;
-      heroSignIn.hidden = true;
+    function showUser(user) {
+      chip.hidden   = false;
+      signBtn.hidden = true;
       chipAvatar.src = user.photoURL || '';
       chipAvatar.style.display = user.photoURL ? 'block' : 'none';
-      chipName.textContent = user.displayName || user.email || '';
+      chipName.textContent = (user.displayName || user.email || '').split(' ')[0];
     }
 
     document.getElementById('intro-guest-btn').addEventListener('click', () => {
@@ -254,34 +395,33 @@
       const auth = authMod.getAuth(app);
       const { GoogleAuthProvider, signInWithPopup, onAuthStateChanged } = authMod;
 
-      let resolved = false;
+      let introResolved = false;
       onAuthStateChanged(auth, (user) => {
-        if (!resolved) {
-          resolved = true;
+        if (!introResolved) {
+          introResolved = true;
           if (user || sessionStorage.getItem('ct-guest')) {
             dismissIntro();
           }
-          // else: intro stays visible
         }
         if (user) {
-          showChip(user);
+          showUser(user);
         } else {
-          chip.hidden = true;
-          heroSignIn.hidden = false;
+          chip.hidden    = true;
+          signBtn.hidden = false;
         }
       });
 
-      document.getElementById('intro-sign-in-btn').addEventListener('click', async () => {
+      async function doSignIn() {
         try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch {}
-      });
-
-      heroSignIn.addEventListener('click', async () => {
-        try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch {}
-      });
+      }
+      document.getElementById('intro-sign-in-btn').addEventListener('click', doSignIn);
+      signBtn.addEventListener('click', doSignIn);
 
     } else {
-      // Firebase not configured — skip intro if guest flag set, else show it
-      if (sessionStorage.getItem('ct-guest')) dismissIntro();
+      if (sessionStorage.getItem('ct-guest')) {
+        dismissIntro();
+      }
+      signBtn.hidden = true;
     }
   </script>
 </body>

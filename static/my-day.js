@@ -44,7 +44,28 @@ function showNotConfigured() {
 const TODAY = new Date().toISOString().slice(0, 10);
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-const GOALS = { calories: 2000, protein: 50, carbs: 275, fat: 78, fiber: 28, sugar: 50, sodium: 2300 };
+function computeGoals() {
+  try {
+    const p = JSON.parse(localStorage.getItem('ct_profile') || '{}');
+    if (!p.weight || !p.height || !p.age) return defaultGoals();
+    // Mifflin-St Jeor BMR
+    const bmr = p.sex === 'female'
+      ? 10 * p.weight + 6.25 * p.height - 5 * p.age - 161
+      : 10 * p.weight + 6.25 * p.height - 5 * p.age + 5;
+    const tdee = Math.round(bmr * 1.55); // moderate activity
+    const cal = p.goal === 'lose' ? tdee - 500 : p.goal === 'gain' ? tdee + 300 : tdee;
+    const protein = Math.round(p.weight * (p.goal === 'gain' ? 2 : 1.6));
+    const fat     = Math.round(cal * 0.28 / 9);
+    const carbs   = Math.round((cal - protein * 4 - fat * 9) / 4);
+    return { calories: cal, protein, carbs, fat, fiber: 28, sugar: 50, sodium: 2300 };
+  } catch { return defaultGoals(); }
+}
+
+function defaultGoals() {
+  return { calories: 2000, protein: 50, carbs: 275, fat: 78, fiber: 28, sugar: 50, sodium: 2300 };
+}
+
+let GOALS = computeGoals();
 
 const RECS = {
   calories_low:  { icon: '↑', text: 'You still have calorie room — add a balanced meal or healthy snack.' },
@@ -216,10 +237,10 @@ document.getElementById('cal-next').addEventListener('click', async () => {
 // ─── Auth UI ──────────────────────────────────────────────────────────────────
 
 function updateAuthUI(user) {
-  const out     = document.getElementById('auth-signed-out');
-  const inEl    = document.getElementById('auth-signed-in');
-  const loading = document.getElementById('auth-loading');
-  const chip    = document.getElementById('user-chip');
+  const out        = document.getElementById('auth-signed-out');
+  const inEl       = document.getElementById('auth-signed-in');
+  const loading    = document.getElementById('auth-loading');
+  const chip       = document.getElementById('user-chip');
   const chipAvatar = document.getElementById('chip-avatar');
   const chipName   = document.getElementById('chip-name');
   loading.hidden = true;
@@ -230,14 +251,16 @@ function updateAuthUI(user) {
     const avatar = document.getElementById('user-avatar');
     avatar.src = user.photoURL || '';
     avatar.style.display = user.photoURL ? 'block' : 'none';
-    chip.hidden = false;
-    chipAvatar.src = user.photoURL || '';
-    chipAvatar.style.display = user.photoURL ? 'block' : 'none';
-    chipName.textContent = user.displayName || user.email || '';
+    if (chip) {
+      chip.hidden = false;
+      chipAvatar.src = user.photoURL || '';
+      chipAvatar.style.display = user.photoURL ? 'block' : 'none';
+      chipName.textContent = (user.displayName || user.email || '').split(' ')[0];
+    }
   } else {
     out.hidden  = false;
     inEl.hidden = true;
-    chip.hidden = true;
+    if (chip) chip.hidden = true;
   }
 }
 
@@ -347,6 +370,24 @@ async function render(dateStr) {
     a.iron     += e.iron         || 0;
     return a;
   }, { calories: 0, protein: 0, fat: 0, carbs: 0, fiber: 0, sugar: 0, sodium: 0, vitA: 0, vitC: 0, calcium: 0, iron: 0 });
+
+  GOALS = computeGoals();
+
+  // Update sidebar goal labels
+  const gl = document.getElementById('goal-label-calories');
+  if (gl) gl.textContent = ` / ${GOALS.calories.toLocaleString()}`;
+  const gp = document.getElementById('goal-label-protein');
+  if (gp) gp.textContent = ` / ${GOALS.protein}g`;
+  const gc = document.getElementById('goal-label-carbs');
+  if (gc) gc.textContent = ` / ${GOALS.carbs}g`;
+  const gf = document.getElementById('goal-label-fat');
+  if (gf) gf.textContent = ` / ${GOALS.fat}g lim`;
+  const gfi = document.getElementById('goal-label-fiber');
+  if (gfi) gfi.textContent = ` / ${GOALS.fiber}g`;
+  const gs = document.getElementById('goal-label-sugar');
+  if (gs) gs.textContent = ` / ${GOALS.sugar}g lim`;
+  const gso = document.getElementById('goal-label-sodium');
+  if (gso) gso.textContent = ` / ${GOALS.sodium.toLocaleString()}mg`;
 
   // Sidebar values
   document.getElementById('s-calories').textContent = t.calories;
