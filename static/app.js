@@ -302,11 +302,9 @@ let bevCurrentResult = null;
 
 function syncBevButtons() {
   const ready = !!bevImageDataUrl;
-  bevAnalyzeBtn.disabled = !ready || !bevNotesInput.value.trim();
+  bevAnalyzeBtn.disabled = !ready;
   bevClearBtn.disabled   = !ready;
 }
-
-bevNotesInput.addEventListener('input', syncBevButtons);
 
 bevPhotoInput.addEventListener('change', async (e) => {
   const file = e.target.files?.[0];
@@ -317,9 +315,7 @@ bevPhotoInput.addEventListener('change', async (e) => {
   bevPreviewImage.src = bevImageDataUrl;
   bevPreviewShell.hidden = false;
   syncBevButtons();
-  bevStatusText.textContent = bevNotesInput.value.trim()
-    ? 'Photo ready — click Analyze Drink.'
-    : 'Photo ready — enter the beverage name below, then analyze.';
+  bevStatusText.textContent = 'Photo ready — name the beverage below, then click Analyze Drink.';
   bevCurrentResult = null;
   bevResultPanel.hidden = true;
   bevAddToDayRow.hidden = true;
@@ -327,7 +323,13 @@ bevPhotoInput.addEventListener('change', async (e) => {
 
 bevAnalyzeBtn.addEventListener('click', async () => {
   const desc = bevNotesInput.value.trim();
-  if (!desc) { bevStatusText.textContent = 'Please name the beverage first.'; bevNotesInput.focus(); return; }
+  if (!desc) {
+    bevStatusText.textContent = '⚠️ Please enter the beverage name before analyzing.';
+    bevNotesInput.focus();
+    bevNotesInput.style.borderColor = 'var(--red)';
+    bevNotesInput.addEventListener('input', () => { bevNotesInput.style.borderColor = ''; }, { once: true });
+    return;
+  }
   bevAnalyzeBtn.disabled = true;
   bevClearBtn.disabled   = true;
   bevStatusText.textContent = 'Analyzing drink…';
