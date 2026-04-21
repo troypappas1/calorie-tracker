@@ -272,8 +272,7 @@ document.getElementById('sign-in-btn').addEventListener('click', async () => {
   document.getElementById('auth-loading').hidden    = false;
   document.getElementById('auth-signed-out').hidden = true;
   try {
-    const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
+    await signInWithPopup(auth, new GoogleAuthProvider());
   } catch (e) {
     document.getElementById('auth-loading').hidden    = true;
     document.getElementById('auth-signed-out').hidden = false;

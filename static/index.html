@@ -374,7 +374,7 @@
     }
 
     function showUser(user) {
-      chip.hidden   = false;
+      chip.hidden    = false;
       signBtn.hidden = true;
       chipAvatar.src = user.photoURL || '';
       chipAvatar.style.display = user.photoURL ? 'block' : 'none';
@@ -396,13 +396,17 @@
       const { GoogleAuthProvider, signInWithPopup, onAuthStateChanged } = authMod;
 
       let introResolved = false;
-      onAuthStateChanged(auth, (user) => {
-        if (!introResolved) {
-          introResolved = true;
-          if (user || sessionStorage.getItem('ct-guest')) {
-            dismissIntro();
-          }
+      function resolveIntro(user) {
+        if (introResolved) return;
+        introResolved = true;
+        const isReturning = Object.keys(localStorage).some(k => k.startsWith('ct_'));
+        if (user || sessionStorage.getItem('ct-guest') || isReturning) {
+          dismissIntro();
         }
+      }
+
+      onAuthStateChanged(auth, (user) => {
+        resolveIntro(user);
         if (user) {
           showUser(user);
         } else {
@@ -410,6 +414,9 @@
           signBtn.hidden = false;
         }
       });
+
+      // Safety fallback: if auth doesn't resolve in 4s, let returning users through.
+      setTimeout(() => resolveIntro(null), 4000);
 
       async function doSignIn() {
         try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch {}
