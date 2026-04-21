@@ -41,6 +41,11 @@ class AnalyzeRequest(BaseModel):
     description: str = ""  # optional brand / quality notes to assist photo
 
 
+class BeverageRequest(BaseModel):
+    imageDataUrl: str
+    description: str = ""  # required: name of the beverage
+
+
 class AnalyzeTextRequest(BaseModel):
     description: str
 
@@ -287,6 +292,53 @@ def analyze(request: AnalyzeRequest) -> dict:
     validate_image_data_url(request.imageDataUrl)
     api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
     return analyze_with_anthropic(request.imageDataUrl, api_key, request.description) if api_key else mock_estimate()
+
+
+def analyze_beverage_with_anthropic(image_data_url: str, api_key: str, description: str = "") -> dict:
+    header, encoded = image_data_url.split(",", 1)
+    media_type = header.split(":")[1].split(";")[0]
+    if media_type not in {"image/jpeg", "image/png", "image/gif", "image/webp"}:
+        media_type = "image/jpeg"
+
+    beverage_hint = f'The user says this is: "{description.strip()}".' if description.strip() else "The user did not specify the beverage — make your best identification from the image."
+
+    text_prompt = (
+        "You are a precise nutrition analyst specializing in beverages and drinks.\n\n"
+        f"{beverage_hint}\n\n"
+        "STEP 1 — IDENTIFY the beverage: brand, type, flavor, and whether it appears to be diet/regular/alcoholic.\n\n"
+        "STEP 2 — ESTIMATE VOLUME: Use any visible hand, bottle label, glass size, or contextual cues to estimate the volume in the cup/glass/bottle shown. "
+        "A standard water bottle is ~500ml. A coffee mug is ~240–350ml. A soda can is ~355ml. "
+        "If a hand is visible, use it to calibrate — a typical adult hand spans about 20cm. "
+        "Do NOT default to a standard serving — estimate what is literally shown.\n\n"
+        "STEP 3 — NUTRITION: Calculate based on the identified beverage and estimated volume. "
+        "Include calories, sugar, caffeine if relevant. For water, all values are 0 except volume.\n\n"
+        f"Reply with ONLY a JSON object:\n{NUTRITION_SCHEMA}\n\n{NUTRITION_NOTES}\n\n"
+        "For beverages: weightGrams = volume in ml (1ml water ≈ 1g). sizeDescription should describe the container size."
+    )
+
+    payload = {
+        "model": "claude-sonnet-4-6",
+        "max_tokens": 600,
+        "messages": [{
+            "role": "user",
+            "content": [
+                {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": encoded}},
+                {"type": "text", "text": text_prompt},
+            ],
+        }],
+    }
+    estimate = call_anthropic(payload, api_key)
+    estimate["source"] = "anthropic"
+    return estimate
+
+
+@app.post("/api/analyze-beverage")
+def analyze_beverage(request: BeverageRequest) -> dict:
+    validate_image_data_url(request.imageDataUrl)
+    api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
+    if not api_key:
+        return mock_estimate()
+    return analyze_beverage_with_anthropic(request.imageDataUrl, api_key, request.description)
 
 
 @app.post("/api/chat")

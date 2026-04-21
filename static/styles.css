@@ -492,6 +492,33 @@ h1 {
   border-radius: 999px;
 }
 
+.required-tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: rgba(33, 150, 243, 0.12);
+  color: #1565c0;
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+.beverage-hint-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(33, 150, 243, 0.07);
+  border: 1px solid rgba(33, 150, 243, 0.2);
+  border-radius: var(--r-md);
+  padding: 10px 14px;
+  font-size: 0.84rem;
+  color: var(--text);
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+.beverage-hint-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+[data-theme="dark"] .required-tag { color: #64b5f6; background: rgba(33,150,243,0.18); }
+[data-theme="dark"] .beverage-hint-box { background: rgba(33,150,243,0.1); border-color: rgba(33,150,243,0.25); }
+
 /* ── Textarea ── */
 .meal-textarea {
   width: 100%;

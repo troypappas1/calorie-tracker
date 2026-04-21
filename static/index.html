@@ -253,6 +253,49 @@
         <p class="status" id="status-text">Upload a photo to begin.</p>
       </section>
 
+      <section class="panel uploader-panel beverage-panel">
+        <div class="upload-copy">
+          <h2>Log a drink</h2>
+          <p>Upload a photo of your beverage for a hydration &amp; calorie estimate.</p>
+        </div>
+
+        <div class="beverage-hint-box">
+          <span class="beverage-hint-icon">💡</span>
+          <span>Hold the drink next to your hand so the AI can gauge the size. <strong>Always name the beverage</strong> below — water, coffee, juice, soda, etc.</span>
+        </div>
+
+        <label class="upload-zone" for="bev-photo-input" id="bev-upload-zone">
+          <input id="bev-photo-input" type="file" accept="image/*">
+          <span class="upload-icon" aria-hidden="true">🥤</span>
+          <span class="upload-title">Choose a drink photo</span>
+          <span class="upload-subtitle">Hold the cup or bottle next to your hand for best accuracy</span>
+        </label>
+
+        <div class="preview-shell" id="bev-preview-shell" hidden>
+          <img id="bev-preview-image" alt="Selected drink preview">
+        </div>
+
+        <div class="notes-assist-wrap">
+          <label class="notes-assist-label" for="bev-notes-input">
+            Beverage name
+            <span class="required-tag">required</span>
+          </label>
+          <textarea
+            id="bev-notes-input"
+            class="meal-textarea"
+            rows="2"
+            placeholder="e.g. &ldquo;water&rdquo;, &ldquo;black coffee&rdquo;, &ldquo;Starbucks oat milk latte&rdquo;, &ldquo;orange juice&rdquo;"
+          ></textarea>
+        </div>
+
+        <div class="actions">
+          <button id="bev-analyze-button" class="primary" disabled>Analyze Drink</button>
+          <button id="bev-clear-button" class="secondary" disabled>Clear</button>
+        </div>
+
+        <p class="status" id="bev-status-text">Upload a drink photo to begin.</p>
+      </section>
+
       <section class="panel result-panel" id="result-panel">
         <div class="result-header">
           <div>
@@ -368,6 +411,66 @@
           <button id="add-to-day-button" class="primary add-btn">+ Add to My Day</button>
         </div>
       </section>
+
+      <!-- Beverage result panel -->
+      <section class="panel result-panel" id="bev-result-panel" hidden>
+        <div class="result-header">
+          <div>
+            <p class="eyebrow">Drink Estimate</p>
+            <h2 id="bev-dish-title">No result yet</h2>
+          </div>
+          <span class="pill" id="bev-provider-pill">Waiting</span>
+        </div>
+
+        <div class="size-row" id="bev-size-row" hidden>
+          <div class="size-cell">
+            <span class="size-label">Estimated volume</span>
+            <strong class="size-value" id="bev-weight-value">--</strong>
+          </div>
+          <div class="size-cell">
+            <span class="size-label">Container</span>
+            <span class="size-desc" id="bev-size-desc">--</span>
+          </div>
+        </div>
+
+        <div class="macros-grid">
+          <article class="metric-card">
+            <span class="metric-label">Calories</span>
+            <strong class="metric-value" id="bev-calories-value">--</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Sugar</span>
+            <strong class="metric-value" id="bev-sugar-value">--</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Carbs</span>
+            <strong class="metric-value" id="bev-carbs-value">--</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Protein</span>
+            <strong class="metric-value" id="bev-protein-value">--</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Fat</span>
+            <strong class="metric-value" id="bev-fat-value">--</strong>
+          </article>
+          <article class="metric-card metric-full">
+            <span class="metric-label">Sodium</span>
+            <strong class="metric-value" id="bev-sodium-value">--</strong>
+          </article>
+        </div>
+
+        <div>
+          <h3>Notes</h3>
+          <ul id="bev-notes-list" class="notes-list">
+            <li>Results will appear here after analysis.</li>
+          </ul>
+        </div>
+
+        <div class="add-to-day-row" id="bev-add-to-day-row" hidden>
+          <button id="bev-add-to-day-button" class="primary add-btn">+ Add to My Day</button>
+        </div>
+      </section>
     </div>
   </main>
 
@@ -416,8 +519,8 @@
       }
       function saveProfile(p) {
         localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
-        // Dispatch so my-day.js updates goals live if open in another tab
         window.dispatchEvent(new StorageEvent('storage', { key: PROFILE_KEY }));
+        window._saveProfileToFirestore && window._saveProfileToFirestore(p);
       }
 
       const modal = document.getElementById('profile-modal');
@@ -530,13 +633,37 @@
     });
 
     if (FIREBASE_ENABLED) {
-      const [appMod, authMod] = await Promise.all([
+      const [appMod, authMod, storeMod] = await Promise.all([
         import('https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js'),
         import('https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js'),
+        import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js'),
       ]);
       const app  = appMod.initializeApp(FIREBASE_CONFIG);
       const auth = authMod.getAuth(app);
+      const db   = storeMod.getFirestore(app);
       const { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } = authMod;
+      const { doc, getDoc, setDoc } = storeMod;
+
+      async function loadProfileFromFirestore(uid) {
+        const PROFILE_KEY = 'ct_profile';
+        try {
+          const snap = await getDoc(doc(db, 'users', uid, 'profile', 'data'));
+          if (snap.exists()) {
+            localStorage.setItem(PROFILE_KEY, JSON.stringify(snap.data()));
+            window.dispatchEvent(new StorageEvent('storage', { key: PROFILE_KEY }));
+          } else {
+            const local = JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null');
+            if (local) await setDoc(doc(db, 'users', uid, 'profile', 'data'), local);
+          }
+        } catch {}
+      }
+
+      // Expose so the inline profile-modal script can push saves to Firestore
+      window._saveProfileToFirestore = async (profile) => {
+        const user = authMod.getAuth(app).currentUser;
+        if (!user) return;
+        try { await setDoc(doc(db, 'users', user.uid, 'profile', 'data'), profile); } catch {}
+      };
 
       // Force sign-in on fresh visits, but not when navigating within the app.
       if (!sessionStorage.getItem('ct-authed')) {
@@ -546,11 +673,12 @@
         intro.remove();
       }
 
-      onAuthStateChanged(auth, (user) => {
+      onAuthStateChanged(auth, async (user) => {
         if (user) {
           sessionStorage.setItem('ct-authed', '1');
           showUser(user);
           dismissIntro();
+          await loadProfileFromFirestore(user.uid);
           document.dispatchEvent(new Event('ct-signed-in'));
         }
       });

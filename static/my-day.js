@@ -21,7 +21,10 @@ if (FIREBASE_ENABLED) {
     authMod.onAuthStateChanged(auth, async (user) => {
       currentUser = user;
       updateAuthUI(user);
-      if (user) await syncLocalToFirestore(TODAY);
+      if (user) {
+        await loadProfileFromFirestore();
+        await syncLocalToFirestore(TODAY);
+      }
       await renderCalendar();
       await render(viewDate);
     });
@@ -183,6 +186,37 @@ async function clearDay(dateStr) {
   await render(dateStr);
   await renderCalendar();
 }
+
+// ─── Profile Firestore sync ───────────────────────────────────────────────────
+
+const PROFILE_KEY = 'ct_profile';
+
+async function loadProfileFromFirestore() {
+  if (!currentUser || !db) return;
+  try {
+    const snap = await fsGetDoc(fsDoc(db, 'users', currentUser.uid, 'profile', 'data'));
+    if (snap.exists()) {
+      const cloud = snap.data();
+      // Merge cloud into local — cloud wins (it's the source of truth across devices)
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(cloud));
+      window.dispatchEvent(new StorageEvent('storage', { key: PROFILE_KEY }));
+    } else {
+      // No cloud profile yet — push local one up if it exists
+      const local = JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null');
+      if (local) await saveProfileToFirestore(local);
+    }
+  } catch (e) { console.warn('Profile load error:', e); }
+}
+
+async function saveProfileToFirestore(profile) {
+  if (!currentUser || !db) return;
+  try {
+    await fsSetDoc(fsDoc(db, 'users', currentUser.uid, 'profile', 'data'), profile);
+  } catch (e) { console.warn('Profile save error:', e); }
+}
+
+// Expose so the inline profile-modal script on this page can call it
+window._saveProfileToFirestore = saveProfileToFirestore;
 
 async function syncLocalToFirestore(dateStr) {
   if (!currentUser || !db) return;

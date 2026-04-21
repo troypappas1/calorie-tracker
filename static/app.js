@@ -284,6 +284,142 @@ function resetResult() {
 
 function setStatus(msg) { statusText.textContent = msg; }
 
+// ─── Beverage analyzer ────────────────────────────────────────────────────────
+
+const bevPhotoInput    = document.getElementById('bev-photo-input');
+const bevPreviewShell  = document.getElementById('bev-preview-shell');
+const bevPreviewImage  = document.getElementById('bev-preview-image');
+const bevAnalyzeBtn    = document.getElementById('bev-analyze-button');
+const bevClearBtn      = document.getElementById('bev-clear-button');
+const bevNotesInput    = document.getElementById('bev-notes-input');
+const bevStatusText    = document.getElementById('bev-status-text');
+const bevResultPanel   = document.getElementById('bev-result-panel');
+const bevAddToDayRow   = document.getElementById('bev-add-to-day-row');
+const bevAddToDayBtn   = document.getElementById('bev-add-to-day-button');
+
+let bevImageDataUrl  = '';
+let bevCurrentResult = null;
+
+function syncBevButtons() {
+  const ready = !!bevImageDataUrl;
+  bevAnalyzeBtn.disabled = !ready || !bevNotesInput.value.trim();
+  bevClearBtn.disabled   = !ready;
+}
+
+bevNotesInput.addEventListener('input', syncBevButtons);
+
+bevPhotoInput.addEventListener('change', async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { bevStatusText.textContent = 'Please choose an image file.'; return; }
+  if (file.size > 20 * 1024 * 1024) { bevStatusText.textContent = 'Image too large — keep it under 20 MB.'; return; }
+  bevImageDataUrl = await fileToDataUrl(file);
+  bevPreviewImage.src = bevImageDataUrl;
+  bevPreviewShell.hidden = false;
+  syncBevButtons();
+  bevStatusText.textContent = bevNotesInput.value.trim()
+    ? 'Photo ready — click Analyze Drink.'
+    : 'Photo ready — enter the beverage name below, then analyze.';
+  bevCurrentResult = null;
+  bevResultPanel.hidden = true;
+  bevAddToDayRow.hidden = true;
+});
+
+bevAnalyzeBtn.addEventListener('click', async () => {
+  const desc = bevNotesInput.value.trim();
+  if (!desc) { bevStatusText.textContent = 'Please name the beverage first.'; bevNotesInput.focus(); return; }
+  bevAnalyzeBtn.disabled = true;
+  bevClearBtn.disabled   = true;
+  bevStatusText.textContent = 'Analyzing drink…';
+
+  try {
+    const res = await fetch('/api/analyze-beverage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageDataUrl: bevImageDataUrl, description: desc }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Analysis failed.');
+    bevCurrentResult = data;
+    renderBevResult(data);
+    bevStatusText.textContent = 'Drink estimate ready.';
+  } catch (err) {
+    bevStatusText.textContent = err.message || 'Something went wrong.';
+  } finally {
+    syncBevButtons();
+  }
+});
+
+bevClearBtn.addEventListener('click', () => {
+  bevImageDataUrl = '';
+  bevPhotoInput.value = '';
+  bevNotesInput.value = '';
+  bevPreviewImage.removeAttribute('src');
+  bevPreviewShell.hidden = true;
+  bevResultPanel.hidden = true;
+  bevAddToDayRow.hidden = true;
+  bevCurrentResult = null;
+  syncBevButtons();
+  bevStatusText.textContent = 'Upload a drink photo to begin.';
+});
+
+function renderBevResult(result) {
+  document.getElementById('bev-dish-title').textContent = result.title || 'Unknown drink';
+  document.getElementById('bev-provider-pill').textContent = { anthropic: 'Claude', mock: 'Mock' }[result.source] || result.source;
+  document.getElementById('bev-calories-value').textContent = String(result.calories || 0);
+  document.getElementById('bev-sugar-value').textContent    = `${result.sugarGrams || 0}g`;
+  document.getElementById('bev-carbs-value').textContent    = `${result.carbsGrams || 0}g`;
+  document.getElementById('bev-protein-value').textContent  = `${result.proteinGrams || 0}g`;
+  document.getElementById('bev-fat-value').textContent      = `${result.fatGrams || 0}g`;
+  document.getElementById('bev-sodium-value').textContent   = `${result.sodiumMg || 0}mg`;
+
+  if (result.weightGrams != null) {
+    document.getElementById('bev-weight-value').textContent = `${result.weightGrams}ml`;
+    document.getElementById('bev-size-desc').textContent    = result.sizeDescription || '--';
+    document.getElementById('bev-size-row').hidden = false;
+  } else {
+    document.getElementById('bev-size-row').hidden = true;
+  }
+
+  const notesList = document.getElementById('bev-notes-list');
+  notesList.innerHTML = '';
+  for (const note of result.notes || []) {
+    const li = document.createElement('li');
+    li.textContent = note;
+    notesList.appendChild(li);
+  }
+
+  bevResultPanel.hidden  = false;
+  bevAddToDayRow.hidden  = false;
+  bevAddToDayBtn.textContent = '+ Add to My Day';
+  bevAddToDayBtn.disabled    = false;
+}
+
+bevAddToDayBtn.addEventListener('click', async () => {
+  if (!bevCurrentResult) return;
+  const thumb = bevImageDataUrl ? await createThumbnail(bevImageDataUrl) : null;
+  const title = bevCurrentResult.title || bevNotesInput.value.trim() || 'Drink';
+  addDayEntry({
+    id:           Date.now().toString(),
+    title,
+    mealType:     'snack',
+    calories:     bevCurrentResult.calories     || 0,
+    proteinGrams: bevCurrentResult.proteinGrams || 0,
+    fatGrams:     bevCurrentResult.fatGrams     || 0,
+    carbsGrams:   bevCurrentResult.carbsGrams   || 0,
+    fiberGrams:   bevCurrentResult.fiberGrams   || 0,
+    sugarGrams:   bevCurrentResult.sugarGrams   || 0,
+    sodiumMg:     bevCurrentResult.sodiumMg     || 0,
+    vitaminA:     bevCurrentResult.vitaminA     || 0,
+    vitaminC:     bevCurrentResult.vitaminC     || 0,
+    calcium:      bevCurrentResult.calcium      || 0,
+    iron:         bevCurrentResult.iron         || 0,
+    thumb,
+  });
+  bevAddToDayBtn.textContent = 'Added!';
+  bevAddToDayBtn.disabled    = true;
+});
+
 function setConfidence(level) {
   const levels = { Low: { pct: 22, cls: "cm-low" }, Medium: { pct: 57, cls: "cm-mid" }, High: { pct: 92, cls: "cm-high" } };
   const cfg = levels[level];
