@@ -418,6 +418,17 @@ bevAddToDayBtn.addEventListener('click', async () => {
     iron:         bevCurrentResult.iron         || 0,
     thumb,
   });
+
+  // Sync hydration: convert ml (weightGrams) to glasses (240ml each), minimum 1
+  const ml = bevCurrentResult.weightGrams || 0;
+  if (ml > 0) {
+    const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+    const waterKey = `ct_water_${todayStr}`;
+    const current  = parseInt(localStorage.getItem(waterKey) || '0', 10);
+    const glasses  = Math.max(1, Math.round(ml / 240));
+    localStorage.setItem(waterKey, Math.min(8, current + glasses).toString());
+  }
+
   bevAddToDayBtn.textContent = 'Added!';
   bevAddToDayBtn.disabled    = true;
 });
