@@ -403,7 +403,11 @@
       });
 
       async function doSignIn() {
-        try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch {}
+        try {
+          const provider = new GoogleAuthProvider();
+          provider.setCustomParameters({ prompt: 'select_account' });
+          await signInWithPopup(auth, provider);
+        } catch {}
       }
       document.getElementById('intro-sign-in-btn').addEventListener('click', doSignIn);
       signBtn.addEventListener('click', doSignIn);

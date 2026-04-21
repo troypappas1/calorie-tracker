@@ -97,6 +97,7 @@ body {
   margin-left: auto;
 }
 
+.nav-sign-in-btn[hidden] { display: none; }
 .nav-sign-in-btn {
   display: inline-flex;
   align-items: center;

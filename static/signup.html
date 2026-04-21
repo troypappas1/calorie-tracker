@@ -49,8 +49,9 @@
 
       document.getElementById('signup-google-btn').addEventListener('click', async () => {
         try {
-          await signInWithPopup(auth, new GoogleAuthProvider());
-          // Redirect to main app after successful sign-up.
+          const provider = new GoogleAuthProvider();
+          provider.setCustomParameters({ prompt: 'select_account' });
+          await signInWithPopup(auth, provider);
           window.location.href = '/';
         } catch (e) {
           if (e.code !== 'auth/popup-closed-by-user') console.error('Sign-up error:', e);
