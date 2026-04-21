@@ -52,15 +52,17 @@
           <div class="profile-field">
             <label class="profile-label">Weight</label>
             <div class="profile-input-group">
-              <input id="p-weight" class="profile-input" type="number" min="30" max="300" placeholder="70">
-              <span class="profile-unit">kg</span>
+              <input id="p-weight" class="profile-input" type="number" min="50" max="700" placeholder="160">
+              <span class="profile-unit">lbs</span>
             </div>
           </div>
           <div class="profile-field">
             <label class="profile-label">Height</label>
             <div class="profile-input-group">
-              <input id="p-height" class="profile-input" type="number" min="100" max="250" placeholder="170">
-              <span class="profile-unit">cm</span>
+              <input id="p-height-ft" class="profile-input" type="number" min="3" max="8" placeholder="5" style="width:56px">
+              <span class="profile-unit">ft</span>
+              <input id="p-height-in" class="profile-input" type="number" min="0" max="11" placeholder="10" style="width:56px;margin-left:6px">
+              <span class="profile-unit">in</span>
             </div>
           </div>
         </div>
@@ -71,14 +73,6 @@
             <button class="goal-btn active" data-goal="maintain">Maintain</button>
             <button class="goal-btn" data-goal="gain">Gain weight</button>
           </div>
-        </div>
-        <div class="profile-field">
-          <label class="profile-label">Hand width <span class="profile-hint">(for portion scale)</span></label>
-          <div class="profile-input-group">
-            <input id="p-hand" class="profile-input" type="number" min="5" max="15" step="0.1" placeholder="8.5">
-            <span class="profile-unit">cm</span>
-          </div>
-          <p class="profile-field-note">Measure across your knuckles. Used to improve food weight estimates.</p>
         </div>
       </div>
       <div class="modal-footer">
@@ -263,16 +257,25 @@
       function loadProfile() {
         try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}'); } catch { return {}; }
       }
-      function saveProfile(p) { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); }
+      function saveProfile(p) {
+        localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
+        window.dispatchEvent(new StorageEvent('storage', { key: PROFILE_KEY }));
+      }
 
       const modal = document.getElementById('profile-modal');
       function openModal() {
         const p = loadProfile();
-        document.getElementById('p-age').value    = p.age    || '';
-        document.getElementById('p-sex').value    = p.sex    || 'male';
-        document.getElementById('p-weight').value = p.weight || '';
-        document.getElementById('p-height').value = p.height || '';
-        document.getElementById('p-hand').value   = p.hand   || '';
+        document.getElementById('p-age').value = p.age || '';
+        document.getElementById('p-sex').value = p.sex || 'male';
+        document.getElementById('p-weight').value = p.weight ? Math.round(p.weight * 2.20462) : '';
+        if (p.height) {
+          const totalIn = p.height / 2.54;
+          document.getElementById('p-height-ft').value = Math.floor(totalIn / 12);
+          document.getElementById('p-height-in').value = Math.round(totalIn % 12);
+        } else {
+          document.getElementById('p-height-ft').value = '';
+          document.getElementById('p-height-in').value = '';
+        }
         document.querySelectorAll('.goal-btn').forEach(b => {
           b.classList.toggle('active', b.dataset.goal === (p.goal || 'maintain'));
         });
@@ -297,13 +300,16 @@
       });
 
       document.getElementById('profile-save').addEventListener('click', () => {
-        const goal = document.querySelector('.goal-btn.active')?.dataset.goal || 'maintain';
+        const goal  = document.querySelector('.goal-btn.active')?.dataset.goal || 'maintain';
+        const lbs   = parseFloat(document.getElementById('p-weight').value) || null;
+        const ft    = parseFloat(document.getElementById('p-height-ft').value) || 0;
+        const ins   = parseFloat(document.getElementById('p-height-in').value) || 0;
+        const totalIn = ft * 12 + ins;
         saveProfile({
-          age:    parseFloat(document.getElementById('p-age').value)    || null,
+          age:    parseFloat(document.getElementById('p-age').value) || null,
           sex:    document.getElementById('p-sex').value,
-          weight: parseFloat(document.getElementById('p-weight').value) || null,
-          height: parseFloat(document.getElementById('p-height').value) || null,
-          hand:   parseFloat(document.getElementById('p-hand').value)   || null,
+          weight: lbs ? Math.round(lbs / 2.20462 * 10) / 10 : null,
+          height: totalIn > 0 ? Math.round(totalIn * 2.54 * 10) / 10 : null,
           goal,
         });
         document.getElementById('profile-saved-msg').hidden = false;

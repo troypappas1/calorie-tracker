@@ -536,6 +536,11 @@ document.getElementById('clear-day-btn').addEventListener('click', () => {
   if (confirm(`Clear all meals for ${label}?`)) clearDay(viewDate);
 });
 
+// Re-render goals immediately when profile is saved
+window.addEventListener('storage', (e) => {
+  if (e.key === 'ct_profile') render(viewDate);
+});
+
 // If Firebase is disabled, render now (Firebase path renders on auth state change)
 if (!FIREBASE_ENABLED) {
   await renderCalendar();
