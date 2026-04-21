@@ -19,6 +19,43 @@
   --sidebar-w:    280px;
 }
 
+/* ── Page themes ── */
+
+/* Analyze: warm earthy green (default, already in :root) */
+
+/* My Day: deep navy/slate blue */
+[data-page="my-day"] {
+  --bg:           #e8eaf2;
+  --panel:        #f4f5fb;
+  --panel-alt:    #eceef8;
+  --line:         rgba(30, 40, 80, 0.1);
+  --text:         #141829;
+  --muted:        #5a6080;
+  --accent:       #3a52b8;
+  --accent-dark:  #1e2f7a;
+  --accent-light: rgba(58, 82, 184, 0.1);
+}
+[data-page="my-day"] .global-nav {
+  background: rgba(244, 245, 251, 0.9);
+}
+[data-page="my-day"] .intro-screen { background: #090e24; }
+
+/* Contact: warm amber/terracotta */
+[data-page="contact"] {
+  --bg:           #f2ebe0;
+  --panel:        #fdf8f0;
+  --panel-alt:    #f5ede0;
+  --line:         rgba(80, 45, 10, 0.1);
+  --text:         #2a1a08;
+  --muted:        #7a5c38;
+  --accent:       #b85a20;
+  --accent-dark:  #7a3410;
+  --accent-light: rgba(184, 90, 32, 0.1);
+}
+[data-page="contact"] .global-nav {
+  background: rgba(253, 248, 240, 0.9);
+}
+
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; }
 
@@ -61,7 +98,10 @@ body {
   white-space: nowrap;
   margin-right: 28px;
   letter-spacing: -0.01em;
+  text-decoration: none;
+  cursor: pointer;
 }
+.nav-brand:hover { opacity: 0.75; }
 
 .nav-tabs {
   display: flex;

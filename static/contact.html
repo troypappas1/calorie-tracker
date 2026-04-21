@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Contact — Calorie Tracker</title>
+  <title>Contact — Nutrition Tracker</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
+<body data-page="contact">
 
   <!-- ── Global nav ── -->
   <header class="global-nav">
     <div class="global-nav-inner">
-      <span class="nav-brand">🥗 Calorie Tracker</span>
+      <a href="/" class="nav-brand">🥗 Nutrition Tracker</a>
       <nav class="nav-tabs">
         <a href="/" class="nav-tab">Analyze</a>
         <a href="/my-day" class="nav-tab">My Day</a>
@@ -88,10 +88,12 @@
       border-radius: var(--r-md);
       transition: background 0.15s, transform 0.15s;
       width: fit-content;
+      box-shadow: 0 2px 12px rgba(184,90,32,0.25);
     }
     .contact-email-btn:hover {
       background: var(--accent-dark);
-      transform: translateY(-1px);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(184,90,32,0.35);
     }
     .contact-location {
       margin: 0;
