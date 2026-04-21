@@ -600,7 +600,9 @@ function attachStaticListeners() {
 
 // ─── Sidebar date + clear button (also needed in Firebase path) ───────────────
 const dateEl = document.getElementById('sidebar-date');
-if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'long', month: 'long', day: 'numeric' });
+const heroDateEl = document.getElementById('myday-hero-date');
+if (heroDateEl) heroDateEl.textContent = new Date().toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'long', month: 'long', day: 'numeric' });
 
 document.getElementById('clear-day-btn').addEventListener('click', () => {
   const label = viewDate === TODAY ? 'today' : viewDate;

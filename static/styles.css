@@ -21,40 +21,144 @@
 
 /* ── Page themes ── */
 
-/* Analyze: warm earthy green (default, already in :root) */
+/* ── Analyze page: lush food photography hero ── */
+[data-page="analyze"] .page-hero {
+  position: relative;
+  width: 100%;
+  min-height: 420px;
+  display: flex;
+  align-items: flex-end;
+  padding: 48px 5%;
+  margin-bottom: 32px;
+  border-radius: 24px;
+  overflow: hidden;
+  background: url('https://images.unsplash.com/photo-1543362906-acfc16c67564?w=1600&q=80&auto=format&fit=crop') center/cover no-repeat;
+  box-shadow: 0 8px 48px rgba(0,0,0,0.18);
+}
+[data-page="analyze"] .page-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(10,20,8,0.82) 0%, rgba(10,20,8,0.3) 55%, transparent 100%);
+}
+[data-page="analyze"] .page-hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 600px;
+}
+[data-page="analyze"] .page-hero .eyebrow { color: rgba(255,255,255,0.6); }
+[data-page="analyze"] .page-hero h1 { color: #fff; margin-bottom: 10px; font-size: clamp(2.2rem,5vw,3.6rem); }
+[data-page="analyze"] .page-hero .lede { color: rgba(255,255,255,0.7); }
 
-/* My Day: deep navy/slate blue */
+/* ── My Day: deep navy/slate blue ── */
 [data-page="my-day"] {
-  --bg:           #e8eaf2;
-  --panel:        #f4f5fb;
-  --panel-alt:    #eceef8;
-  --line:         rgba(30, 40, 80, 0.1);
-  --text:         #141829;
-  --muted:        #5a6080;
-  --accent:       #3a52b8;
-  --accent-dark:  #1e2f7a;
-  --accent-light: rgba(58, 82, 184, 0.1);
+  --bg:           #0f1420;
+  --panel:        #1a2035;
+  --panel-alt:    #141928;
+  --line:         rgba(255,255,255,0.08);
+  --text:         #e8eaf5;
+  --muted:        #8891b4;
+  --accent:       #5b7fff;
+  --accent-dark:  #3a5be8;
+  --accent-light: rgba(91,127,255,0.12);
+  --shadow:       0 2px 24px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06);
+  --shadow-sm:    0 1px 8px rgba(0,0,0,0.3);
 }
+[data-page="my-day"] body { background-color: var(--bg); }
 [data-page="my-day"] .global-nav {
-  background: rgba(244, 245, 251, 0.9);
+  background: rgba(15,20,32,0.85);
+  border-bottom-color: rgba(255,255,255,0.07);
 }
-[data-page="my-day"] .intro-screen { background: #090e24; }
+[data-page="my-day"] .nav-brand,
+[data-page="my-day"] .nav-tab { color: rgba(255,255,255,0.75); }
+[data-page="my-day"] .nav-tab.active,
+[data-page="my-day"] .nav-tab:hover { color: #fff; background: rgba(255,255,255,0.08); }
+[data-page="my-day"] .myday-sidebar {
+  background: var(--panel);
+  border-right-color: var(--line);
+}
+[data-page="my-day"] .sidebar-brand,
+[data-page="my-day"] .sidebar-section-heading { color: var(--text); }
+[data-page="my-day"] .page-hero {
+  position: relative;
+  width: 100%;
+  min-height: 220px;
+  display: flex;
+  align-items: flex-end;
+  padding: 36px 40px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: url('https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=1600&q=80&auto=format&fit=crop') center/cover no-repeat;
+  box-shadow: 0 8px 48px rgba(0,0,0,0.5);
+  margin-bottom: 24px;
+}
+[data-page="my-day"] .page-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(5,10,30,0.9) 0%, rgba(5,10,30,0.45) 60%, transparent 100%);
+}
+[data-page="my-day"] .page-hero-content { position: relative; z-index: 1; }
+[data-page="my-day"] .page-hero h1 { color: #fff; font-size: 2rem; margin: 0; }
+[data-page="my-day"] .page-hero .eyebrow { color: rgba(255,255,255,0.5); }
+[data-page="my-day"] .cal-cell { color: var(--text); }
+[data-page="my-day"] .cal-arrow { color: var(--muted); background: var(--panel-alt); border: 1px solid var(--line); }
+[data-page="my-day"] .entry-card { background: var(--panel); border-color: var(--line); }
+[data-page="my-day"] button.primary { background: var(--accent); }
+[data-page="my-day"] .sgb { background: var(--accent); }
+[data-page="my-day"] .dsp-badge--neutral { background: rgba(255,255,255,0.08); color: var(--muted); }
+[data-page="my-day"] .dsp-badge--good { background: rgba(91,127,255,0.2); color: #a0b8ff; }
+[data-page="my-day"] .dsp-badge--warn { background: rgba(255,160,50,0.15); color: #ffb84d; }
+[data-page="my-day"] .dsp-badge--over { background: rgba(220,60,60,0.15); color: #ff8080; }
+[data-page="my-day"] .rec-card { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.07); }
+[data-page="my-day"] .entry-card { background: var(--panel); border-color: var(--line); }
+[data-page="my-day"] .remove-btn { background: rgba(255,255,255,0.07); color: var(--muted); }
+[data-page="my-day"] .cal-cell { color: var(--text); background: var(--panel-alt); }
+[data-page="my-day"] .cal-cell.cal-today { background: var(--accent); color: #fff; }
+[data-page="my-day"] .sidebar-back { color: var(--muted); }
+[data-page="my-day"] .serving-btn { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.1); color: var(--muted); }
+[data-page="my-day"] input, [data-page="my-day"] select, [data-page="my-day"] textarea { background: var(--panel-alt); color: var(--text); border-color: var(--line); }
 
-/* Contact: warm amber/terracotta */
+/* ── Contact: warm California landscape ── */
 [data-page="contact"] {
-  --bg:           #f2ebe0;
-  --panel:        #fdf8f0;
-  --panel-alt:    #f5ede0;
-  --line:         rgba(80, 45, 10, 0.1);
-  --text:         #2a1a08;
+  --bg:           #faf7f2;
+  --panel:        #ffffff;
+  --panel-alt:    #f5f0e8;
+  --line:         rgba(80,45,10,0.1);
+  --text:         #1a1008;
   --muted:        #7a5c38;
-  --accent:       #b85a20;
-  --accent-dark:  #7a3410;
-  --accent-light: rgba(184, 90, 32, 0.1);
+  --accent:       #c0622a;
+  --accent-dark:  #8a3d14;
+  --accent-light: rgba(192,98,42,0.1);
+  --shadow:       0 4px 32px rgba(100,50,10,0.1), 0 0 0 1px rgba(80,45,10,0.06);
 }
 [data-page="contact"] .global-nav {
-  background: rgba(253, 248, 240, 0.9);
+  background: rgba(250,247,242,0.9);
+  border-bottom-color: rgba(80,45,10,0.1);
 }
+[data-page="contact"] .page-hero {
+  position: relative;
+  width: 100%;
+  min-height: 400px;
+  display: flex;
+  align-items: flex-end;
+  padding: 48px 5%;
+  margin-bottom: 40px;
+  border-radius: 24px;
+  overflow: hidden;
+  background: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1600&q=80&auto=format&fit=crop') center/cover no-repeat;
+  box-shadow: 0 8px 48px rgba(100,50,10,0.2);
+}
+[data-page="contact"] .page-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(20,8,2,0.85) 0%, rgba(20,8,2,0.3) 55%, transparent 100%);
+}
+[data-page="contact"] .page-hero-content { position: relative; z-index: 1; max-width: 560px; }
+[data-page="contact"] .page-hero .eyebrow { color: rgba(255,255,255,0.55); }
+[data-page="contact"] .page-hero h1 { color: #fff; font-size: clamp(2.2rem,5vw,3.4rem); margin-bottom: 10px; }
+[data-page="contact"] .page-hero .lede { color: rgba(255,255,255,0.65); }
 
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; }
