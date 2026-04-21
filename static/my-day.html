@@ -16,14 +16,27 @@
       <nav class="nav-tabs">
         <a href="/" class="nav-tab">Analyze</a>
         <button class="nav-tab active">My Day</button>
-        <button class="nav-tab" id="nav-profile-btn">Profile</button>
         <a href="/contact" class="nav-tab">Contact</a>
       </nav>
       <div class="nav-right">
-        <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle dark mode">🌙</button>
-        <div id="user-chip" class="user-chip" hidden>
-          <img class="user-chip-avatar" id="chip-avatar" alt="Profile photo" />
-          <span class="user-chip-name" id="chip-name"></span>
+        <div class="user-menu-wrap" id="user-menu-wrap" hidden>
+          <button class="user-chip" id="user-chip" aria-haspopup="true" aria-expanded="false">
+            <img class="user-chip-avatar" id="chip-avatar" alt="Profile photo" />
+            <span class="user-chip-name" id="chip-name"></span>
+            <span class="user-chip-caret">▾</span>
+          </button>
+          <div class="user-dropdown" id="user-dropdown" hidden>
+            <button class="user-dropdown-item" id="dd-profile">
+              <span class="dd-icon">👤</span> Profile
+            </button>
+            <button class="user-dropdown-item" id="dd-theme">
+              <span class="dd-icon" id="dd-theme-icon">🌙</span> <span id="dd-theme-label">Dark mode</span>
+            </button>
+            <div class="user-dropdown-divider"></div>
+            <button class="user-dropdown-item user-dropdown-item--danger" id="dd-signout">
+              <span class="dd-icon">↩</span> Sign out
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -299,7 +312,7 @@
         modal.addEventListener('transitionend', () => { modal.hidden = true; }, { once: true });
       }
 
-      document.getElementById('nav-profile-btn').addEventListener('click', openModal);
+      document.getElementById('dd-profile').addEventListener('click', () => { closeDropdown(); openModal(); });
       document.getElementById('profile-close').addEventListener('click', closeModal);
       modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 
@@ -331,23 +344,58 @@
 
   <script type="module" src="/my-day.js"></script>
 
-  <!-- Theme toggle -->
+  <!-- Theme toggle (hidden, delegated to by dropdown) -->
+  <button id="theme-toggle" style="display:none" aria-hidden="true"></button>
   <script>
     (function() {
-      const btn = document.getElementById('theme-toggle');
       const html = document.documentElement;
-      if (localStorage.getItem('ct_theme') === 'dark') btn.textContent = '☀️';
-      btn.addEventListener('click', () => {
+      document.getElementById('theme-toggle').addEventListener('click', () => {
         const isDark = html.getAttribute('data-theme') === 'dark';
-        if (isDark) {
-          html.removeAttribute('data-theme');
-          btn.textContent = '🌙';
-          localStorage.setItem('ct_theme', 'light');
-        } else {
-          html.setAttribute('data-theme', 'dark');
-          btn.textContent = '☀️';
-          localStorage.setItem('ct_theme', 'dark');
-        }
+        if (isDark) { html.removeAttribute('data-theme'); localStorage.setItem('ct_theme', 'light'); }
+        else         { html.setAttribute('data-theme','dark'); localStorage.setItem('ct_theme','dark'); }
+      });
+    })();
+  </script>
+
+  <!-- User dropdown -->
+  <script>
+    (function() {
+      function openDropdown() {
+        document.getElementById('user-dropdown').hidden = false;
+        document.getElementById('user-chip').setAttribute('aria-expanded', 'true');
+      }
+      function closeDropdown() {
+        document.getElementById('user-dropdown').hidden = true;
+        document.getElementById('user-chip').setAttribute('aria-expanded', 'false');
+      }
+      window.closeDropdown = closeDropdown;
+
+      document.getElementById('user-chip').addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.getElementById('user-dropdown').hidden ? openDropdown() : closeDropdown();
+      });
+      document.addEventListener('click', closeDropdown);
+      document.getElementById('user-dropdown').addEventListener('click', e => e.stopPropagation());
+
+      // Theme item
+      const icon  = document.getElementById('dd-theme-icon');
+      const label = document.getElementById('dd-theme-label');
+      function syncThemeLabel() {
+        const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+        icon.textContent  = dark ? '☀️' : '🌙';
+        label.textContent = dark ? 'Light mode' : 'Dark mode';
+      }
+      syncThemeLabel();
+      document.getElementById('dd-theme').addEventListener('click', () => {
+        document.getElementById('theme-toggle').click();
+        syncThemeLabel();
+        closeDropdown();
+      });
+
+      // Sign out — delegate to sidebar sign-out button
+      document.getElementById('dd-signout').addEventListener('click', () => {
+        closeDropdown();
+        document.getElementById('sign-out-btn').click();
       });
     })();
   </script>

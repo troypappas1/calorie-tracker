@@ -110,15 +110,31 @@
       <nav class="nav-tabs">
         <a href="/" class="nav-tab active" id="nav-analyze">Analyze</a>
         <a href="/my-day" class="nav-tab">My Day</a>
-        <button class="nav-tab" id="nav-profile-btn">Profile</button>
         <a href="/contact" class="nav-tab">Contact</a>
       </nav>
       <div class="nav-right">
-        <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle dark mode">🌙</button>
         <button id="tutorial-btn" class="tutorial-nav-btn" hidden>How it works</button>
-        <div id="user-chip" class="user-chip" hidden>
-          <img class="user-chip-avatar" id="chip-avatar" alt="Profile photo" />
-          <span class="user-chip-name" id="chip-name"></span>
+        <div class="user-menu-wrap" id="user-menu-wrap" hidden>
+          <button class="user-chip" id="user-chip" aria-haspopup="true" aria-expanded="false">
+            <img class="user-chip-avatar" id="chip-avatar" alt="Profile photo" />
+            <span class="user-chip-name" id="chip-name"></span>
+            <span class="user-chip-caret">▾</span>
+          </button>
+          <div class="user-dropdown" id="user-dropdown" hidden>
+            <button class="user-dropdown-item" id="dd-profile">
+              <span class="dd-icon">👤</span> Profile
+            </button>
+            <button class="user-dropdown-item" id="dd-theme">
+              <span class="dd-icon" id="dd-theme-icon">🌙</span> <span id="dd-theme-label">Dark mode</span>
+            </button>
+            <button class="user-dropdown-item" id="dd-tutorial">
+              <span class="dd-icon">🎓</span> How it works
+            </button>
+            <div class="user-dropdown-divider"></div>
+            <button class="user-dropdown-item user-dropdown-item--danger" id="dd-signout">
+              <span class="dd-icon">↩</span> Sign out
+            </button>
+          </div>
         </div>
         <button id="home-sign-in-btn" class="nav-sign-in-btn" hidden>
           <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -358,6 +374,30 @@
 
   <script src="/app.js"></script>
 
+  <!-- Dropdown controller (global so profile modal script can call closeDropdown) -->
+  <script>
+    (function() {
+      function openDropdown() {
+        document.getElementById('user-dropdown').hidden = false;
+        document.getElementById('user-chip').setAttribute('aria-expanded', 'true');
+      }
+      function closeDropdown() {
+        const dd = document.getElementById('user-dropdown');
+        if (dd) dd.hidden = true;
+        const chip = document.getElementById('user-chip');
+        if (chip) chip.setAttribute('aria-expanded', 'false');
+      }
+      window.closeDropdown = closeDropdown;
+
+      document.getElementById('user-chip').addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.getElementById('user-dropdown').hidden ? openDropdown() : closeDropdown();
+      });
+      document.addEventListener('click', closeDropdown);
+      document.getElementById('user-dropdown').addEventListener('click', e => e.stopPropagation());
+    })();
+  </script>
+
   <!-- Vitamins toggle -->
   <script>
     document.getElementById('vitamins-toggle').addEventListener('click', function() {
@@ -409,7 +449,7 @@
         modal.addEventListener('transitionend', () => { modal.hidden = true; }, { once: true });
       }
 
-      document.getElementById('nav-profile-btn').addEventListener('click', openModal);
+      document.getElementById('dd-profile').addEventListener('click', () => { window.closeDropdown && window.closeDropdown(); openModal(); });
       document.getElementById('profile-close').addEventListener('click', closeModal);
       modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 
@@ -445,7 +485,7 @@
     import { FIREBASE_CONFIG, FIREBASE_ENABLED } from '/firebase-config.js';
 
     const intro      = document.getElementById('intro-screen');
-    const chip       = document.getElementById('user-chip');
+    const menuWrap   = document.getElementById('user-menu-wrap');
     const chipAvatar = document.getElementById('chip-avatar');
     const chipName   = document.getElementById('chip-name');
     const signBtn    = document.getElementById('home-sign-in-btn');
@@ -460,13 +500,36 @@
     }
 
     function showUser(user) {
-      chip.hidden    = false;
-      signBtn.hidden = true;
+      menuWrap.hidden = false;
+      signBtn.hidden  = true;
       document.getElementById('tutorial-btn').hidden = false;
       chipAvatar.src = user.photoURL || '';
       chipAvatar.style.display = user.photoURL ? 'block' : 'none';
       chipName.textContent = (user.displayName || user.email || '').split(' ')[0];
     }
+
+    // Theme item inside dropdown
+    (function() {
+      const icon  = document.getElementById('dd-theme-icon');
+      const label = document.getElementById('dd-theme-label');
+      function syncThemeLabel() {
+        const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+        icon.textContent  = dark ? '☀️' : '🌙';
+        label.textContent = dark ? 'Light mode' : 'Dark mode';
+      }
+      syncThemeLabel();
+      document.getElementById('dd-theme').addEventListener('click', () => {
+        document.getElementById('theme-toggle').click();
+        syncThemeLabel();
+        window.closeDropdown && window.closeDropdown();
+      });
+    })();
+
+    // Tutorial item inside dropdown
+    document.getElementById('dd-tutorial').addEventListener('click', () => {
+      window.closeDropdown && window.closeDropdown();
+      document.getElementById('tutorial-btn').click();
+    });
 
     if (FIREBASE_ENABLED) {
       const [appMod, authMod] = await Promise.all([
@@ -504,8 +567,16 @@
       document.getElementById('intro-sign-in-btn').addEventListener('click', doSignIn);
       signBtn.addEventListener('click', doSignIn);
 
+      document.getElementById('dd-signout').addEventListener('click', async () => {
+        window.closeDropdown && window.closeDropdown();
+        sessionStorage.removeItem('ct-authed');
+        await signOut(auth).catch(() => {});
+        location.href = '/';
+      });
+
     } else {
       signBtn.hidden = true;
+      document.getElementById('dd-signout').style.display = 'none';
     }
   </script>
 
@@ -573,8 +644,8 @@
       },
       {
         title: 'Set your profile',
-        body: 'Click "Profile" to enter your age, sex, weight, height, and goal. The app uses this to calculate your personal calorie, protein, and vitamin targets — the more accurate your profile, the better your recommendations.',
-        target: 'nav-profile-btn',
+        body: 'Click your name in the top-right corner and choose "Profile" to enter your age, sex, weight, height, and goal. The app uses this to calculate your personal calorie, protein, and vitamin targets.',
+        target: 'user-chip',
         position: 'below',
       },
     ];
@@ -614,6 +685,7 @@
       setTimeout(() => {
         const r = el.getBoundingClientRect();
         const pad = 10;
+        // Spotlight uses absolute coords (scrollY) since it's inside the fixed overlay's absolute child
         spotlight.style.cssText = `
           opacity:1;
           top:${r.top + window.scrollY - pad}px;
@@ -622,23 +694,35 @@
           height:${r.height + pad * 2}px;
         `;
 
-        // Position tooltip
+        // Tooltip is position:fixed — use viewport-relative coords and clamp to stay on screen
         tooltip.className = 'tut-tooltip';
-        const tw = 340, th = 220;
+        tooltip.style.transform = '';
+        tooltip.style.right = '';
+        const tw = 340, th = 240;
         const vw = window.innerWidth, vh = window.innerHeight;
+        const margin = 16;
+
+        function clampTop(top) { return Math.max(margin, Math.min(top, vh - th - margin)); }
+        function clampLeft(left) { return Math.max(margin, Math.min(left, vw - tw - margin)); }
 
         if (s.position === 'center') {
           tooltip.className = 'tut-tooltip tut-tooltip--center';
         } else if (s.position === 'right' && r.right + tw + 20 < vw) {
-          tooltip.style.top  = `${Math.min(r.top + window.scrollY, window.scrollY + vh - th - 20)}px`;
-          tooltip.style.left = `${r.right + window.scrollX + 20}px`;
+          tooltip.style.top  = `${clampTop(r.top)}px`;
+          tooltip.style.left = `${r.right + 20}px`;
         } else if (s.position === 'left' && r.left - tw - 20 > 0) {
-          tooltip.style.top  = `${Math.min(r.top + window.scrollY, window.scrollY + vh - th - 20)}px`;
-          tooltip.style.left = `${r.left + window.scrollX - tw - 20}px`;
+          tooltip.style.top  = `${clampTop(r.top)}px`;
+          tooltip.style.left = `${r.left - tw - 20}px`;
+        } else if (s.position === 'below') {
+          const top = r.bottom + 16;
+          // If tooltip would go off bottom, place above instead
+          const fitsBelow = top + th + margin < vh;
+          tooltip.style.top  = fitsBelow ? `${top}px` : `${Math.max(margin, r.top - th - 16)}px`;
+          tooltip.style.left = `${clampLeft(r.left)}px`;
         } else {
-          // below
-          tooltip.style.top  = `${r.bottom + window.scrollY + 16}px`;
-          tooltip.style.left = `${Math.min(r.left + window.scrollX, vw - tw - 20)}px`;
+          // Fallback: center vertically beside element, clamped
+          tooltip.style.top  = `${clampTop(r.top)}px`;
+          tooltip.style.left = `${clampLeft(r.left)}px`;
         }
       }, 300);
     }
@@ -669,32 +753,29 @@
 
     document.getElementById('tutorial-btn').addEventListener('click', startTutorial);
 
-    // Auto-launch tutorial on first ever visit
-    if (!localStorage.getItem('ct_tutorial_done')) {
+    // Auto-launch tutorial on first ever visit (only once)
+    if (!localStorage.getItem('ct_tutorial_seen')) {
       document.addEventListener('ct-signed-in', () => {
-        localStorage.setItem('ct_tutorial_done', '1');
+        localStorage.setItem('ct_tutorial_seen', '1');
         setTimeout(startTutorial, 800);
       }, { once: true });
     }
   })();
   </script>
 
-  <!-- Theme toggle -->
+  <!-- Theme toggle (hidden, delegated to by dropdown) -->
+  <button id="theme-toggle" style="display:none" aria-hidden="true"></button>
   <script>
     (function() {
-      const btn = document.getElementById('theme-toggle');
       const html = document.documentElement;
-      const saved = localStorage.getItem('ct_theme');
-      if (saved === 'dark') { html.setAttribute('data-theme', 'dark'); btn.textContent = '☀️'; }
+      const btn  = document.getElementById('theme-toggle');
       btn.addEventListener('click', () => {
         const isDark = html.getAttribute('data-theme') === 'dark';
         if (isDark) {
           html.removeAttribute('data-theme');
-          btn.textContent = '🌙';
           localStorage.setItem('ct_theme', 'light');
         } else {
           html.setAttribute('data-theme', 'dark');
-          btn.textContent = '☀️';
           localStorage.setItem('ct_theme', 'dark');
         }
       });

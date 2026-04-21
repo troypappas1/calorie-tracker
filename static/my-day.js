@@ -277,7 +277,7 @@ function updateAuthUI(user) {
   const out        = document.getElementById('auth-signed-out');
   const inEl       = document.getElementById('auth-signed-in');
   const loading    = document.getElementById('auth-loading');
-  const chip       = document.getElementById('user-chip');
+  const menuWrap   = document.getElementById('user-menu-wrap');
   const chipAvatar = document.getElementById('chip-avatar');
   const chipName   = document.getElementById('chip-name');
   loading.hidden = true;
@@ -288,8 +288,8 @@ function updateAuthUI(user) {
     const avatar = document.getElementById('user-avatar');
     avatar.src = user.photoURL || '';
     avatar.style.display = user.photoURL ? 'block' : 'none';
-    if (chip) {
-      chip.hidden = false;
+    if (menuWrap) {
+      menuWrap.hidden = false;
       chipAvatar.src = user.photoURL || '';
       chipAvatar.style.display = user.photoURL ? 'block' : 'none';
       chipName.textContent = (user.displayName || user.email || '').split(' ')[0];
@@ -297,7 +297,7 @@ function updateAuthUI(user) {
   } else {
     out.hidden  = false;
     inEl.hidden = true;
-    if (chip) chip.hidden = true;
+    if (menuWrap) menuWrap.hidden = true;
   }
 }
 
