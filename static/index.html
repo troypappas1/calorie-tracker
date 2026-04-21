@@ -105,7 +105,7 @@
   <!-- ── Global nav ── -->
   <header class="global-nav" id="global-nav" style="visibility:hidden">
     <div class="global-nav-inner">
-      <a href="/" class="nav-brand">🥗 Nutrition Tracker</a>
+      <a href="/" id="nav-brand-btn" class="nav-brand" onclick="sessionStorage.removeItem('ct-authed');return true;">🥗 Nutrition Tracker</a>
       <nav class="nav-tabs">
         <a href="/" class="nav-tab active" id="nav-analyze">Analyze</a>
         <a href="/my-day" class="nav-tab">My Day</a>
@@ -113,6 +113,7 @@
         <a href="/contact" class="nav-tab">Contact</a>
       </nav>
       <div class="nav-right">
+        <button id="tutorial-btn" class="tutorial-nav-btn" hidden>How it works</button>
         <div id="user-chip" class="user-chip" hidden>
           <img class="user-chip-avatar" id="chip-avatar" alt="Profile photo" />
           <span class="user-chip-name" id="chip-name"></span>
@@ -459,6 +460,7 @@
     function showUser(user) {
       chip.hidden    = false;
       signBtn.hidden = true;
+      document.getElementById('tutorial-btn').hidden = false;
       chipAvatar.src = user.photoURL || '';
       chipAvatar.style.display = user.photoURL ? 'block' : 'none';
       chipName.textContent = (user.displayName || user.email || '').split(' ')[0];
@@ -486,6 +488,7 @@
           sessionStorage.setItem('ct-authed', '1');
           showUser(user);
           dismissIntro();
+          document.dispatchEvent(new Event('ct-signed-in'));
         }
       });
 
@@ -502,6 +505,178 @@
     } else {
       signBtn.hidden = true;
     }
+  </script>
+
+  <!-- ── Tutorial ── -->
+  <div id="tutorial-overlay" class="tut-overlay" hidden>
+    <div id="tut-spotlight" class="tut-spotlight"></div>
+    <div id="tut-tooltip" class="tut-tooltip">
+      <div class="tut-step-indicator"><span id="tut-step-num"></span></div>
+      <h3 id="tut-title" class="tut-title"></h3>
+      <p id="tut-body" class="tut-body"></p>
+      <div class="tut-actions">
+        <button id="tut-skip" class="tut-skip-btn">Skip</button>
+        <div class="tut-nav">
+          <button id="tut-prev" class="tut-prev-btn">← Back</button>
+          <button id="tut-next" class="tut-next-btn">Next →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function() {
+    const STEPS = [
+      {
+        title: 'Welcome to Nutrition Tracker',
+        body: "This quick tour will show you how to get the most out of the app. You'll learn how to analyze meals, track your day, and set your personal goals.",
+        target: null,
+        position: 'center',
+      },
+      {
+        title: 'Upload a food photo',
+        body: 'Tap this area to choose a photo of any meal. For the most accurate estimate, place your hand next to the food — the AI uses it to gauge portion size.',
+        target: 'upload-zone',
+        position: 'right',
+      },
+      {
+        title: 'Add optional details',
+        body: 'Describe the brand, restaurant, or anything specific about the meal here. For example: "McDonald\'s Big Mac" or "Chipotle burrito bowl, extra rice". This makes the estimate much more accurate.',
+        target: 'notes-input',
+        position: 'right',
+      },
+      {
+        title: 'Analyze your meal',
+        body: 'Once you\'ve added a photo or description, click here to get an instant AI-powered nutrition breakdown — calories, protein, fat, carbs, fiber, sugar, sodium, and vitamins.',
+        target: 'analyze-button',
+        position: 'right',
+      },
+      {
+        title: 'Your nutrition results',
+        body: 'Results appear here with a full macro and micronutrient breakdown. Use the serving size buttons to scale up or down if your portion was bigger or smaller.',
+        target: 'result-panel',
+        position: 'left',
+      },
+      {
+        title: 'Add to My Day',
+        body: 'Once you\'re happy with the result, tap "Add to My Day" to log it. Your daily totals update instantly and are synced to your account.',
+        target: 'add-to-day-row',
+        position: 'left',
+      },
+      {
+        title: 'Track your day',
+        body: 'Click "My Day" in the nav to see everything you\'ve eaten today — totals, goal progress bars, and smart recommendations based on your profile and the time of day.',
+        target: 'nav-analyze',
+        position: 'below',
+      },
+      {
+        title: 'Set your profile',
+        body: 'Click "Profile" to enter your age, sex, weight, height, and goal. The app uses this to calculate your personal calorie, protein, and vitamin targets — the more accurate your profile, the better your recommendations.',
+        target: 'nav-profile-btn',
+        position: 'below',
+      },
+    ];
+
+    let step = 0;
+    const overlay  = document.getElementById('tutorial-overlay');
+    const spotlight = document.getElementById('tut-spotlight');
+    const tooltip  = document.getElementById('tut-tooltip');
+    const stepNum  = document.getElementById('tut-step-num');
+    const titleEl  = document.getElementById('tut-title');
+    const bodyEl   = document.getElementById('tut-body');
+    const prevBtn  = document.getElementById('tut-prev');
+    const nextBtn  = document.getElementById('tut-next');
+    const skipBtn  = document.getElementById('tut-skip');
+
+    function showStep(i) {
+      const s = STEPS[i];
+      stepNum.textContent = `${i + 1} of ${STEPS.length}`;
+      titleEl.textContent = s.title;
+      bodyEl.textContent  = s.body;
+      prevBtn.style.visibility = i === 0 ? 'hidden' : 'visible';
+      nextBtn.textContent = i === STEPS.length - 1 ? 'Finish ✓' : 'Next →';
+
+      if (!s.target) {
+        // Centre tooltip, no spotlight
+        spotlight.style.cssText = 'opacity:0';
+        tooltip.className = 'tut-tooltip tut-tooltip--center';
+        return;
+      }
+
+      const el = document.getElementById(s.target);
+      if (!el) { spotlight.style.cssText = 'opacity:0'; return; }
+
+      // Scroll element into view
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      setTimeout(() => {
+        const r = el.getBoundingClientRect();
+        const pad = 10;
+        spotlight.style.cssText = `
+          opacity:1;
+          top:${r.top + window.scrollY - pad}px;
+          left:${r.left + window.scrollX - pad}px;
+          width:${r.width + pad * 2}px;
+          height:${r.height + pad * 2}px;
+        `;
+
+        // Position tooltip
+        tooltip.className = 'tut-tooltip';
+        const tw = 340, th = 220;
+        const vw = window.innerWidth, vh = window.innerHeight;
+
+        if (s.position === 'center') {
+          tooltip.className = 'tut-tooltip tut-tooltip--center';
+        } else if (s.position === 'right' && r.right + tw + 20 < vw) {
+          tooltip.style.top  = `${Math.min(r.top + window.scrollY, window.scrollY + vh - th - 20)}px`;
+          tooltip.style.left = `${r.right + window.scrollX + 20}px`;
+        } else if (s.position === 'left' && r.left - tw - 20 > 0) {
+          tooltip.style.top  = `${Math.min(r.top + window.scrollY, window.scrollY + vh - th - 20)}px`;
+          tooltip.style.left = `${r.left + window.scrollX - tw - 20}px`;
+        } else {
+          // below
+          tooltip.style.top  = `${r.bottom + window.scrollY + 16}px`;
+          tooltip.style.left = `${Math.min(r.left + window.scrollX, vw - tw - 20)}px`;
+        }
+      }, 300);
+    }
+
+    function startTutorial() {
+      step = 0;
+      overlay.hidden = false;
+      document.body.style.overflow = 'hidden';
+      showStep(step);
+    }
+
+    function endTutorial() {
+      overlay.hidden = true;
+      document.body.style.overflow = '';
+      spotlight.style.cssText = 'opacity:0';
+    }
+
+    nextBtn.addEventListener('click', () => {
+      if (step >= STEPS.length - 1) { endTutorial(); return; }
+      step++;
+      showStep(step);
+    });
+    prevBtn.addEventListener('click', () => {
+      if (step <= 0) return;
+      step--;
+      showStep(step);
+    });
+    skipBtn.addEventListener('click', endTutorial);
+    overlay.addEventListener('click', e => { if (e.target === overlay) endTutorial(); });
+
+    document.getElementById('tutorial-btn').addEventListener('click', startTutorial);
+
+    // Auto-launch tutorial on first ever visit
+    if (!localStorage.getItem('ct_tutorial_done')) {
+      document.addEventListener('ct-signed-in', () => {
+        localStorage.setItem('ct_tutorial_done', '1');
+        setTimeout(startTutorial, 800);
+      }, { once: true });
+    }
+  })();
   </script>
 </body>
 </html>
