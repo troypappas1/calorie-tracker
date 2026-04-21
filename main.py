@@ -50,6 +50,14 @@ class AnalyzeTextRequest(BaseModel):
     description: str
 
 
+class MealPlanRequest(BaseModel):
+    budget: float = 75.0
+    people: int = 2
+    diet: str = "no restrictions"
+    skill: str = "intermediate"
+    notes: str = ""
+
+
 class ChatMessage(BaseModel):
     role: str   # "user" or "assistant"
     content: str
@@ -266,6 +274,59 @@ def chat_with_anthropic(messages: list[ChatMessage], api_key: str, context: str 
     return content[0]["text"]
 
 
+MEAL_PLAN_SCHEMA = '''{
+  "totalCost": 68.50,
+  "costPerPerson": 34.25,
+  "avgDailyCalories": 1950,
+  "tips": ["Buy oats in bulk for cheaper breakfasts", "Chicken thighs cost less than breasts"],
+  "days": [
+    {
+      "day": "Monday",
+      "totalCalories": 1900,
+      "meals": [
+        {"type": "Breakfast", "name": "Overnight oats with banana", "description": "5 min prep the night before. Filling and cheap.", "cost": 0.85, "calories": 380},
+        {"type": "Lunch",     "name": "Turkey wrap",               "description": "Whole-wheat tortilla, turkey, lettuce, mustard.", "cost": 2.10, "calories": 520},
+        {"type": "Dinner",    "name": "Sheet-pan chicken thighs",  "description": "With roasted broccoli and rice. 25 min oven time.", "cost": 3.80, "calories": 650},
+        {"type": "Snack",     "name": "Apple and peanut butter",   "description": "", "cost": 0.60, "calories": 250}
+      ]
+    }
+  ]
+}'''
+
+
+def meal_plan_with_anthropic(budget: float, people: int, diet: str, skill: str, notes: str, api_key: str) -> dict:
+    skill_map = {
+        "beginner": "very simple recipes under 15 minutes that require minimal cooking skill",
+        "intermediate": "straightforward recipes under 30 minutes",
+        "confident": "recipes up to 1 hour that may involve basic techniques like sautéing or roasting",
+    }
+    skill_desc = skill_map.get(skill, skill_map["intermediate"])
+
+    notes_line = f'\nExtra notes from user: "{notes.strip()}"' if notes.strip() else ""
+
+    prompt = (
+        f"You are a budget-conscious meal planning expert. Create a realistic 7-day meal plan for {people} person(s) "
+        f"with a total weekly grocery budget of ${budget:.0f} USD.\n\n"
+        f"Dietary preference: {diet}\n"
+        f"Cooking skill: {skill_desc}{notes_line}\n\n"
+        "Rules:\n"
+        "- Include breakfast, lunch, dinner, and one snack every day\n"
+        "- Meals must be genuinely easy and affordable — no gourmet ingredients\n"
+        "- Reuse ingredients across days to reduce waste and cost\n"
+        "- Keep per-meal costs realistic for a US grocery store\n"
+        "- Estimate calories per meal realistically\n"
+        "- Include 2-3 actionable shopping tips\n\n"
+        f"Reply with ONLY a valid JSON object exactly matching this schema:\n{MEAL_PLAN_SCHEMA}"
+    )
+    payload = {
+        "model": "claude-haiku-4-5-20251001",
+        "max_tokens": 2500,
+        "messages": [{"role": "user", "content": prompt}],
+    }
+    result = call_anthropic(payload, api_key)
+    return result
+
+
 app = FastAPI(title="Calorie Tracker Web API")
 
 app.add_middleware(
@@ -352,6 +413,16 @@ def chat(request: ChatRequest) -> dict:
     return {"reply": reply}
 
 
+@app.post("/api/meal-plan")
+def meal_plan(request: MealPlanRequest) -> dict:
+    api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
+    if not api_key:
+        raise HTTPException(status_code=503, detail="Meal planner requires an API key. Set ANTHROPIC_API_KEY.")
+    return meal_plan_with_anthropic(
+        request.budget, request.people, request.diet, request.skill, request.notes, api_key
+    )
+
+
 @app.post("/api/analyze-text")
 def analyze_text(request: AnalyzeTextRequest) -> dict:
     if not request.description.strip():
@@ -368,6 +439,11 @@ def index() -> FileResponse:
 @app.get("/my-day")
 def my_day() -> FileResponse:
     return FileResponse(STATIC_DIR / "my-day.html")
+
+
+@app.get("/meal-planner")
+def meal_planner_page() -> FileResponse:
+    return FileResponse(STATIC_DIR / "meal-planner.html")
 
 
 @app.get("/signup")

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meal Planner — Nutrition Tracker</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script>if(localStorage.getItem('ct_theme')==='dark')document.documentElement.setAttribute('data-theme','dark');</script>
+  <style>
+    .mp-wrap { max-width: 860px; margin: 0 auto; padding: 32px 20px 80px; }
+    .mp-form-panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 28px; margin-bottom: 28px; box-shadow: var(--shadow-sm); }
+    .mp-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .mp-field { display: flex; flex-direction: column; gap: 6px; }
+    .mp-field label { font-size: 0.82rem; font-weight: 600; color: var(--muted); letter-spacing: 0.03em; text-transform: uppercase; }
+    .mp-field input, .mp-field select, .mp-field textarea {
+      background: var(--panel-alt); border: 1.5px solid var(--line); border-radius: var(--r-sm);
+      padding: 10px 12px; font-size: 0.93rem; color: var(--text); font-family: inherit;
+      transition: border-color 0.14s;
+    }
+    .mp-field input:focus, .mp-field select:focus, .mp-field textarea:focus {
+      outline: none; border-color: var(--accent);
+    }
+    .mp-field textarea { resize: vertical; min-height: 72px; }
+    .mp-field-full { grid-column: 1 / -1; }
+    .mp-generate-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: var(--accent); color: #fff; border: none; border-radius: var(--r-md);
+      padding: 13px 28px; font-size: 0.97rem; font-weight: 700; cursor: pointer;
+      transition: background 0.14s, transform 0.1s; width: 100%; margin-top: 20px;
+    }
+    .mp-generate-btn:hover:not(:disabled) { background: var(--accent-dark); transform: translateY(-1px); }
+    .mp-generate-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+    .mp-result { display: none; }
+    .mp-result.visible { display: block; }
+    .mp-week-grid { display: grid; gap: 14px; }
+    .mp-day-card {
+      background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg);
+      overflow: hidden; box-shadow: var(--shadow-sm);
+    }
+    .mp-day-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 18px; background: var(--panel-alt); border-bottom: 1px solid var(--line);
+    }
+    .mp-day-name { font-weight: 700; font-size: 0.95rem; color: var(--text); }
+    .mp-day-cals { font-size: 0.8rem; color: var(--muted); background: var(--accent-light); color: var(--accent); padding: 3px 9px; border-radius: 20px; font-weight: 600; }
+    .mp-meals { padding: 14px 18px; display: flex; flex-direction: column; gap: 10px; }
+    .mp-meal-row { display: flex; gap: 12px; align-items: flex-start; }
+    .mp-meal-type { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); min-width: 58px; padding-top: 2px; }
+    .mp-meal-info { flex: 1; }
+    .mp-meal-name { font-weight: 600; font-size: 0.9rem; color: var(--text); margin: 0 0 3px; }
+    .mp-meal-detail { font-size: 0.78rem; color: var(--muted); margin: 0; }
+    .mp-meal-cost { font-size: 0.78rem; color: var(--accent); font-weight: 600; white-space: nowrap; }
+
+    .mp-summary-row {
+      display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 20px;
+    }
+    .mp-summary-card {
+      flex: 1; min-width: 120px; background: var(--panel); border: 1px solid var(--line);
+      border-radius: var(--r-md); padding: 14px 16px; text-align: center; box-shadow: var(--shadow-sm);
+    }
+    .mp-summary-val { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
+    .mp-summary-lbl { font-size: 0.75rem; color: var(--muted); margin-top: 3px; }
+
+    .mp-tips { background: var(--accent-light); border: 1px solid rgba(91,76,245,0.18); border-radius: var(--r-md); padding: 16px 18px; margin-bottom: 20px; }
+    .mp-tips-title { font-weight: 700; color: var(--accent); font-size: 0.88rem; margin-bottom: 8px; }
+    .mp-tips ul { margin: 0; padding-left: 18px; font-size: 0.85rem; color: var(--text); line-height: 1.7; }
+
+    .mp-loading { display: none; flex-direction: column; align-items: center; gap: 16px; padding: 48px 20px; text-align: center; }
+    .mp-loading.visible { display: flex; }
+    .mp-spinner { width: 40px; height: 40px; border: 3px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .mp-error { display: none; background: rgba(224,48,80,0.08); border: 1px solid rgba(224,48,80,0.2); border-radius: var(--r-md); padding: 14px 18px; color: var(--red); font-size: 0.88rem; margin-bottom: 20px; }
+    .mp-error.visible { display: block; }
+
+    @media (max-width: 560px) {
+      .mp-form-grid { grid-template-columns: 1fr; }
+      .mp-summary-row { gap: 10px; }
+    }
+  </style>
+</head>
+<body data-page="meal-planner">
+
+  <!-- ── Global nav ── -->
+  <header class="global-nav">
+    <div class="global-nav-inner">
+      <a href="/" class="nav-brand">🥗 Nutrition Tracker</a>
+      <nav class="nav-tabs">
+        <a href="/" class="nav-tab">Analyze</a>
+        <a href="/my-day" class="nav-tab">My Day</a>
+        <a href="/meal-planner" class="nav-tab active">Meal Planner</a>
+        <a href="/contact" class="nav-tab">Contact</a>
+      </nav>
+      <div class="nav-right">
+        <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle dark mode">🌙</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="mp-wrap">
+    <div style="margin-bottom:24px">
+      <p class="eyebrow" style="margin:0 0 6px">AI-Powered</p>
+      <h1 style="margin:0 0 8px;font-size:clamp(1.6rem,4vw,2.4rem)">Weekly Meal Planner</h1>
+      <p style="color:var(--muted);margin:0;font-size:0.95rem">Tell us your budget and preferences — we'll plan a full week of easy, affordable meals.</p>
+    </div>
+
+    <div class="mp-form-panel">
+      <div class="mp-form-grid">
+        <div class="mp-field">
+          <label>Weekly Budget (USD)</label>
+          <input type="number" id="mp-budget" placeholder="e.g. 75" min="10" max="500" value="75">
+        </div>
+        <div class="mp-field">
+          <label>Number of People</label>
+          <input type="number" id="mp-people" placeholder="e.g. 2" min="1" max="10" value="2">
+        </div>
+        <div class="mp-field">
+          <label>Diet / Preferences</label>
+          <select id="mp-diet">
+            <option value="no restrictions">No restrictions</option>
+            <option value="vegetarian">Vegetarian</option>
+            <option value="vegan">Vegan</option>
+            <option value="gluten-free">Gluten-free</option>
+            <option value="dairy-free">Dairy-free</option>
+            <option value="low-carb">Low-carb</option>
+            <option value="high-protein">High-protein</option>
+            <option value="Mediterranean">Mediterranean</option>
+          </select>
+        </div>
+        <div class="mp-field">
+          <label>Cooking Skill</label>
+          <select id="mp-skill">
+            <option value="beginner">Beginner (15 min or less)</option>
+            <option value="intermediate" selected>Intermediate (up to 30 min)</option>
+            <option value="confident">Confident (up to 1 hour)</option>
+          </select>
+        </div>
+        <div class="mp-field mp-field-full">
+          <label>Any foods to avoid or include?</label>
+          <textarea id="mp-notes" placeholder="e.g. no shellfish, love pasta, kids eat too"></textarea>
+        </div>
+      </div>
+      <button class="mp-generate-btn" id="mp-generate-btn">
+        <span id="mp-btn-text">✨ Generate My Meal Plan</span>
+      </button>
+    </div>
+
+    <div class="mp-error" id="mp-error"></div>
+    <div class="mp-loading" id="mp-loading">
+      <div class="mp-spinner"></div>
+      <p style="color:var(--muted);font-size:0.9rem">Planning your week…</p>
+    </div>
+
+    <div class="mp-result" id="mp-result">
+      <div class="mp-summary-row" id="mp-summary-row"></div>
+      <div class="mp-tips" id="mp-tips" style="display:none">
+        <div class="mp-tips-title">💡 Shopping tips</div>
+        <ul id="mp-tips-list"></ul>
+      </div>
+      <div class="mp-week-grid" id="mp-week-grid"></div>
+    </div>
+  </div>
+
+  <script>
+    // Theme toggle
+    (function() {
+      const btn = document.getElementById('theme-toggle');
+      function apply(dark) {
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        btn.textContent = dark ? '☀️' : '🌙';
+        localStorage.setItem('ct_theme', dark ? 'dark' : 'light');
+      }
+      const saved = localStorage.getItem('ct_theme');
+      apply(saved === 'dark');
+      btn.addEventListener('click', () => apply(document.documentElement.getAttribute('data-theme') !== 'dark'));
+    })();
+  </script>
+
+  <script>
+    const generateBtn = document.getElementById('mp-generate-btn');
+    const btnText     = document.getElementById('mp-btn-text');
+    const loading     = document.getElementById('mp-loading');
+    const resultEl    = document.getElementById('mp-result');
+    const errorEl     = document.getElementById('mp-error');
+
+    generateBtn.addEventListener('click', async () => {
+      const budget  = parseFloat(document.getElementById('mp-budget').value) || 75;
+      const people  = parseInt(document.getElementById('mp-people').value) || 2;
+      const diet    = document.getElementById('mp-diet').value;
+      const skill   = document.getElementById('mp-skill').value;
+      const notes   = document.getElementById('mp-notes').value.trim();
+
+      generateBtn.disabled = true;
+      btnText.textContent  = 'Planning…';
+      loading.classList.add('visible');
+      resultEl.classList.remove('visible');
+      errorEl.classList.remove('visible');
+
+      try {
+        const res = await fetch('/api/meal-plan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ budget, people, diet, skill, notes }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || `Server error ${res.status}`);
+        }
+        const data = await res.json();
+        renderPlan(data);
+      } catch (e) {
+        errorEl.textContent = e.message || 'Something went wrong. Please try again.';
+        errorEl.classList.add('visible');
+      } finally {
+        generateBtn.disabled = false;
+        btnText.textContent  = '✨ Generate My Meal Plan';
+        loading.classList.remove('visible');
+      }
+    });
+
+    function renderPlan(data) {
+      // Summary row
+      const summaryEl = document.getElementById('mp-summary-row');
+      summaryEl.innerHTML = '';
+      const sumItems = [
+        { val: `$${(data.totalCost || 0).toFixed(0)}`, lbl: 'Est. total / week' },
+        { val: `$${(data.costPerPerson || 0).toFixed(0)}`, lbl: 'Per person / week' },
+        { val: `${data.avgDailyCalories || '--'}`, lbl: 'Avg daily calories' },
+        { val: `${data.days ? data.days.length : 0}`, lbl: 'Days planned' },
+      ];
+      for (const s of sumItems) {
+        summaryEl.insertAdjacentHTML('beforeend', `
+          <div class="mp-summary-card">
+            <div class="mp-summary-val">${s.val}</div>
+            <div class="mp-summary-lbl">${s.lbl}</div>
+          </div>`);
+      }
+
+      // Tips
+      const tipsEl   = document.getElementById('mp-tips');
+      const tipsList = document.getElementById('mp-tips-list');
+      if (data.tips && data.tips.length) {
+        tipsList.innerHTML = data.tips.map(t => `<li>${esc(t)}</li>`).join('');
+        tipsEl.style.display = '';
+      } else {
+        tipsEl.style.display = 'none';
+      }
+
+      // Days
+      const weekEl = document.getElementById('mp-week-grid');
+      weekEl.innerHTML = '';
+      for (const day of data.days || []) {
+        const mealsHtml = (day.meals || []).map(m => `
+          <div class="mp-meal-row">
+            <div class="mp-meal-type">${esc(m.type || '')}</div>
+            <div class="mp-meal-info">
+              <p class="mp-meal-name">${esc(m.name || '')}</p>
+              <p class="mp-meal-detail">${esc(m.description || '')}</p>
+            </div>
+            <div class="mp-meal-cost">${m.cost ? '$' + m.cost.toFixed(2) : ''}</div>
+          </div>`).join('');
+
+        weekEl.insertAdjacentHTML('beforeend', `
+          <div class="mp-day-card">
+            <div class="mp-day-header">
+              <div class="mp-day-name">${esc(day.day || '')}</div>
+              ${day.totalCalories ? `<div class="mp-day-cals">${day.totalCalories} cal</div>` : ''}
+            </div>
+            <div class="mp-meals">${mealsHtml}</div>
+          </div>`);
+      }
+
+      resultEl.classList.add('visible');
+      resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+  </script>
+</body>
+</html>
