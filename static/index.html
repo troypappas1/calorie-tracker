@@ -38,7 +38,7 @@
     <div class="global-nav-inner">
       <span class="nav-brand">🥗 Calorie Tracker</span>
       <nav class="nav-tabs">
-        <button class="nav-tab active" id="nav-analyze">Analyze</button>
+        <a href="/" class="nav-tab active" id="nav-analyze">Analyze</a>
         <a href="/my-day" class="nav-tab">My Day</a>
         <button class="nav-tab" id="nav-profile-btn">Profile</button>
       </nav>
@@ -390,16 +390,17 @@
       const auth = authMod.getAuth(app);
       const { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } = authMod;
 
-      // Always sign out on page load so sign-in is required every visit.
-      await signOut(auth).catch(() => {});
+      // Force sign-in on fresh visits, but not when navigating within the app.
+      if (!sessionStorage.getItem('ct-authed')) {
+        await signOut(auth).catch(() => {});
+      }
 
       onAuthStateChanged(auth, (user) => {
         if (user) {
+          sessionStorage.setItem('ct-authed', '1');
           showUser(user);
           dismissIntro();
         }
-        // Don't touch the sign-in button on signed-out state —
-        // the intro screen handles that, and we don't want it reappearing in the nav.
       });
 
       async function doSignIn() {
