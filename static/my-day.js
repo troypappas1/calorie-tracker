@@ -319,7 +319,17 @@ document.getElementById('sign-in-btn').addEventListener('click', async () => {
 
 document.getElementById('sign-out-btn').addEventListener('click', async () => {
   if (!auth) return;
+  if (!confirm('Sign out and clear all your data (profile, meals, photos) from this device?')) return;
+  // Clear all app data from localStorage and sessionStorage
+  const keysToRemove = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith('ct_')) keysToRemove.push(k);
+  }
+  keysToRemove.forEach(k => localStorage.removeItem(k));
+  sessionStorage.removeItem('ct-authed');
   try { await signOut(auth); } catch {}
+  window.location.href = '/';
 });
 
 // ─── Status + recommendations ─────────────────────────────────────────────────
