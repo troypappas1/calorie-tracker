@@ -702,6 +702,18 @@ button:active:not(:disabled) { transform: translateY(1px); }
   100% { opacity: 1; transform: scale(1) rotate(0deg); }
 }
 
+.intro-cursor {
+  display: inline-block;
+  color: #fff;
+  font-weight: 300;
+  animation: cursorBlink 0.9s step-end infinite;
+  margin-left: 2px;
+}
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
 .intro-screen {
   position: fixed;
   inset: 0;

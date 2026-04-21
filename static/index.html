@@ -14,11 +14,10 @@
     <div class="intro-bg-orb intro-orb-2"></div>
     <div class="intro-bg-orb intro-orb-3"></div>
     <div class="intro-content">
-      <div class="intro-logo" aria-hidden="true">🥗</div>
-      <p class="intro-eyebrow">Food Nutrition Tracker</p>
-      <h1 class="intro-title">Know what<br>you eat.</h1>
-      <p class="intro-sub">Photograph any meal for an instant nutrition breakdown. Sync across devices with Google.</p>
-      <div class="intro-actions">
+      <p class="intro-eyebrow" id="intro-eyebrow" style="opacity:0">Food Nutrition Tracker</p>
+      <h1 class="intro-title"><span id="intro-typed"></span><span class="intro-cursor" id="intro-cursor">|</span></h1>
+      <p class="intro-sub" id="intro-sub" style="opacity:0">Photograph any meal for an instant nutrition breakdown. Sync across devices with Google.</p>
+      <div class="intro-actions" id="intro-actions" style="opacity:0;transform:translateY(16px)">
         <button id="intro-sign-in-btn" class="intro-google-btn">
           <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -32,6 +31,76 @@
       </div>
     </div>
   </div>
+
+  <script>
+    (function() {
+      function runTypewriter() {
+        const lines = ['Know what', 'you eat.'];
+        const typed  = document.getElementById('intro-typed');
+        const cursor = document.getElementById('intro-cursor');
+        const eyebrow = document.getElementById('intro-eyebrow');
+        const sub    = document.getElementById('intro-sub');
+        const actions = document.getElementById('intro-actions');
+
+        // Fade in eyebrow first
+        eyebrow.style.transition = 'opacity 0.6s';
+        eyebrow.style.opacity = '1';
+
+        let lineIdx = 0, charIdx = 0;
+        let html = '';
+
+        function typeNext() {
+          if (lineIdx >= lines.length) {
+            // Done typing — blink cursor briefly then hide it
+            setTimeout(() => {
+              cursor.style.opacity = '0';
+              // Fade in subtitle
+              sub.style.transition = 'opacity 0.7s';
+              sub.style.opacity = '1';
+              // Slide up buttons
+              setTimeout(() => {
+                actions.style.transition = 'opacity 0.6s, transform 0.6s cubic-bezier(0.16,1,0.3,1)';
+                actions.style.opacity = '1';
+                actions.style.transform = 'translateY(0)';
+              }, 400);
+            }, 500);
+            return;
+          }
+
+          const line = lines[lineIdx];
+          if (charIdx < line.length) {
+            html += line[charIdx];
+            typed.innerHTML = lineIdx === 0 ? html : lines[0] + '<br>' + html;
+            charIdx++;
+            // Vary speed slightly for natural feel
+            const delay = 55 + Math.random() * 40;
+            setTimeout(typeNext, delay);
+          } else {
+            // End of line
+            if (lineIdx === 0) {
+              typed.innerHTML = lines[0] + '<br>';
+              html = '';
+            }
+            lineIdx++;
+            charIdx = 0;
+            setTimeout(typeNext, lineIdx === 1 ? 180 : 0);
+          }
+        }
+
+        setTimeout(typeNext, 500);
+      }
+
+      // Run when intro becomes visible
+      const observer = new MutationObserver(() => {
+        const intro = document.getElementById('intro-screen');
+        if (intro && intro.style.visibility === 'visible') {
+          observer.disconnect();
+          runTypewriter();
+        }
+      });
+      observer.observe(document.getElementById('intro-screen'), { attributes: true, attributeFilter: ['style'] });
+    })();
+  </script>
 
   <!-- ── Global nav ── -->
   <header class="global-nav">
