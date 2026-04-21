@@ -92,6 +92,13 @@
 [data-theme="dark"] .lede { color: var(--muted); }
 [data-theme="dark"] .s-goal { color: var(--muted); }
 [data-theme="dark"] .vitamins-toggle-btn { color: var(--muted); background: var(--panel-alt); border-color: var(--line); }
+[data-theme="dark"] .hydration-panel { background: var(--panel); border-color: var(--line); }
+[data-theme="dark"] .hydration-title { color: var(--text); }
+[data-theme="dark"] .chat-panel { background: var(--panel); border-color: var(--line); }
+[data-theme="dark"] .chat-panel-header { background: var(--panel-alt); }
+[data-theme="dark"] .chat-msg--assistant { background: var(--panel-alt); border-color: var(--line); color: var(--text); }
+[data-theme="dark"] .chat-input { background: var(--panel-alt); color: var(--text); border-color: var(--line); }
+[data-theme="dark"] .water-add-btn { background: var(--panel-alt); border-color: var(--line); color: var(--text); }
 
 /* ── Hero images — light mode ── */
 .page-hero {

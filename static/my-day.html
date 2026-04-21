@@ -307,9 +307,8 @@
   <script>
     document.getElementById('sidebar-vitamins-toggle').addEventListener('click', function() {
       const sec = document.getElementById('sidebar-vitamins-section');
-      const open = sec.style.display !== 'none' && sec.style.display !== '';
-      sec.style.display = open ? 'none' : '';
-      this.textContent = open ? 'Vitamins & Minerals ▾' : 'Vitamins & Minerals ▴';
+      sec.hidden = !sec.hidden;
+      this.textContent = sec.hidden ? 'Vitamins & Minerals ▾' : 'Vitamins & Minerals ▴';
     });
   </script>
 
@@ -430,7 +429,6 @@
       function appendMsg(role, text) {
         const div = document.createElement('div');
         div.className = `chat-msg chat-msg--${role}`;
-        // Simple markdown-ish: newlines → <br>
         div.innerHTML = `<p>${text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>')}</p>`;
         msgs.appendChild(div);
         msgs.scrollTop = msgs.scrollHeight;
@@ -441,6 +439,57 @@
         sendBtn.disabled = on;
         input.disabled   = on;
         sendBtn.textContent = on ? '…' : 'Send';
+      }
+
+      function buildDayContext() {
+        // Pull today's date key (matches my-day.js todayPT logic)
+        const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+        let entries = [];
+        try { entries = JSON.parse(localStorage.getItem(`ct_log_${todayStr}`) || '[]'); } catch {}
+        const water = parseInt(localStorage.getItem(`ct_water_${todayStr}`) || '0', 10);
+        let profile = {};
+        try { profile = JSON.parse(localStorage.getItem('ct_profile') || '{}'); } catch {}
+
+        const lines = [`Date: ${todayStr}`];
+
+        if (profile.age || profile.weight || profile.height) {
+          const weightLbs = profile.weight ? Math.round(profile.weight * 2.20462) : null;
+          const totalIn   = profile.height ? profile.height / 2.54 : null;
+          const ft = totalIn ? Math.floor(totalIn / 12) : null;
+          const ins = totalIn ? Math.round(totalIn % 12) : null;
+          const parts = [];
+          if (profile.age)    parts.push(`age ${profile.age}`);
+          if (profile.sex)    parts.push(profile.sex);
+          if (weightLbs)      parts.push(`${weightLbs} lbs`);
+          if (ft !== null)    parts.push(`${ft}'${ins}"`);
+          if (profile.goal)   parts.push(`goal: ${profile.goal}`);
+          lines.push(`User profile: ${parts.join(', ')}`);
+        }
+
+        lines.push(`Water today: ${water} glasses (${water * 8} oz) of 8-glass goal`);
+
+        if (!entries.length) {
+          lines.push('Food logged today: none yet');
+        } else {
+          const totals = entries.reduce((a, e) => {
+            a.cal  += e.calories     || 0;
+            a.pro  += e.proteinGrams || 0;
+            a.fat  += e.fatGrams     || 0;
+            a.carb += e.carbsGrams   || 0;
+            a.fib  += e.fiberGrams   || 0;
+            a.sug  += e.sugarGrams   || 0;
+            a.sod  += e.sodiumMg     || 0;
+            return a;
+          }, { cal: 0, pro: 0, fat: 0, carb: 0, fib: 0, sug: 0, sod: 0 });
+
+          lines.push(`Food logged today (${entries.length} item${entries.length !== 1 ? 's' : ''}):`);
+          entries.forEach(e => {
+            lines.push(`  - ${e.title}: ${e.calories || 0} kcal, ${e.proteinGrams || 0}g protein, ${e.carbsGrams || 0}g carbs, ${e.fatGrams || 0}g fat`);
+          });
+          lines.push(`Daily totals so far: ${totals.cal} kcal | ${totals.pro}g protein | ${totals.carb}g carbs | ${totals.fat}g fat | ${totals.fib}g fiber | ${totals.sug}g sugar | ${totals.sod}mg sodium`);
+        }
+
+        return lines.join('\n');
       }
 
       async function sendMessage() {
@@ -457,7 +506,7 @@
           const res = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ messages: history }),
+            body: JSON.stringify({ messages: history, context: buildDayContext() }),
           });
           const data = await res.json();
           const reply = data.reply || 'Sorry, I couldn\'t get a response.';

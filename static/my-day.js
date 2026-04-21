@@ -547,8 +547,9 @@ async function render(dateStr) {
   for (const entry of entries) {
     const article = document.createElement('article');
     article.className = 'entry-card';
+    const safeTitle = entry.title.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     const thumbHtml = entry.thumb
-      ? `<img class="entry-thumb" src="${entry.thumb}" alt="${entry.title}">`
+      ? `<img class="entry-thumb" src="${entry.thumb}" alt="${safeTitle}">`
       : `<div class="entry-thumb-placeholder">&#127869;</div>`;
     const typeLabel = (entry.mealType || 'meal');
     article.innerHTML = `
@@ -556,7 +557,7 @@ async function render(dateStr) {
         ${thumbHtml}
         <div class="entry-card-title-row">
           <div class="entry-card-title-wrap">
-            <strong class="entry-card-title">${entry.title}</strong>
+            <strong class="entry-card-title">${safeTitle}</strong>
             <span class="entry-type-badge entry-type-${typeLabel}">${typeLabel}</span>
           </div>
           <button class="remove-btn" data-id="${entry.id}">&#10005; Remove</button>
@@ -677,15 +678,7 @@ async function initWithoutFirebase() {
 }
 
 function attachStaticListeners() {
-  const dateEl = document.getElementById('sidebar-date');
-  if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-
-  document.getElementById('clear-day-btn').addEventListener('click', () => {
-    const label = viewDate === TODAY ? 'today' : viewDate;
-    if (confirm(`Clear all meals for ${label}?`)) clearDay(viewDate);
-  });
-
-  attachWaterListeners();
+  // date label and clear-day listener are set unconditionally below; nothing extra needed here
 }
 
 // ─── Sidebar date + clear button (also needed in Firebase path) ───────────────

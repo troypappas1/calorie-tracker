@@ -52,6 +52,7 @@ class ChatMessage(BaseModel):
 
 class ChatRequest(BaseModel):
     messages: list[ChatMessage]
+    context: str = ""  # optional snapshot of today's log injected as system context
 
 
 def mock_estimate() -> dict:
@@ -222,11 +223,14 @@ CHAT_SYSTEM_PROMPT = (
 )
 
 
-def chat_with_anthropic(messages: list[ChatMessage], api_key: str) -> str:
+def chat_with_anthropic(messages: list[ChatMessage], api_key: str, context: str = "") -> str:
+    system = CHAT_SYSTEM_PROMPT
+    if context.strip():
+        system += f"\n\nCURRENT DAY CONTEXT (use this to give personalized advice):\n{context.strip()}"
     payload = {
         "model": "claude-haiku-4-5-20251001",
         "max_tokens": 512,
-        "system": CHAT_SYSTEM_PROMPT,
+        "system": system,
         "messages": [{"role": m.role, "content": m.content} for m in messages],
     }
     request = urllib.request.Request(
@@ -292,7 +296,7 @@ def chat(request: ChatRequest) -> dict:
     api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
     if not api_key:
         return {"reply": "The nutrition assistant isn't available yet — the API key hasn't been configured."}
-    reply = chat_with_anthropic(request.messages, api_key)
+    reply = chat_with_anthropic(request.messages, api_key, request.context)
     return {"reply": reply}
 
 

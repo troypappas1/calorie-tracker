@@ -45,6 +45,7 @@ photoInput.addEventListener("change", async (event) => {
   const file = event.target.files?.[0];
   if (!file) return;
   if (!file.type.startsWith("image/")) { setStatus("Please choose an image file."); return; }
+  if (file.size > 20 * 1024 * 1024) { setStatus("Image is too large. Please choose a file under 20 MB."); return; }
   imageDataUrl = await fileToDataUrl(file);
   previewImage.src = imageDataUrl;
   previewShell.hidden = false;
