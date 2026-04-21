@@ -393,7 +393,10 @@
       // Always sign out on page load so sign-in is required every visit.
       await signOut(auth).catch(() => {});
 
+      // Ignore the first onAuthStateChanged call (null from the forced sign-out above).
+      let firstCall = true;
       onAuthStateChanged(auth, (user) => {
+        if (firstCall) { firstCall = false; return; }
         if (user) {
           showUser(user);
           dismissIntro();
