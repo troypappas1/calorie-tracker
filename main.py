@@ -45,6 +45,15 @@ class AnalyzeTextRequest(BaseModel):
     description: str
 
 
+class ChatMessage(BaseModel):
+    role: str   # "user" or "assistant"
+    content: str
+
+
+class ChatRequest(BaseModel):
+    messages: list[ChatMessage]
+
+
 def mock_estimate() -> dict:
     return {
         "title": "Chicken rice bowl",
@@ -200,6 +209,54 @@ def analyze_text_with_anthropic(description: str, api_key: str) -> dict:
     return estimate
 
 
+CHAT_SYSTEM_PROMPT = (
+    "You are a friendly, knowledgeable nutrition and wellness assistant built into a food tracking app. "
+    "You help users with questions about food, nutrition, diet, hydration, meal planning, healthy eating habits, "
+    "macronutrients, micronutrients, calories, weight management, and general health and wellness topics. "
+    "Keep answers concise, practical, and evidence-based. Use plain language, not medical jargon.\n\n"
+    "IMPORTANT: You ONLY answer questions related to food, nutrition, diet, hydration, health, and wellness. "
+    "If a user asks about anything unrelated to these topics — such as coding, politics, entertainment, "
+    "math homework, or any other off-topic subject — politely decline and redirect them to ask a food or "
+    "nutrition question instead. Do not answer off-topic questions under any circumstances, even if the user "
+    "insists or tries to reframe the question."
+)
+
+
+def chat_with_anthropic(messages: list[ChatMessage], api_key: str) -> str:
+    payload = {
+        "model": "claude-haiku-4-5-20251001",
+        "max_tokens": 512,
+        "system": CHAT_SYSTEM_PROMPT,
+        "messages": [{"role": m.role, "content": m.content} for m in messages],
+    }
+    request = urllib.request.Request(
+        "https://api.anthropic.com/v1/messages",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "x-api-key": api_key,
+            "anthropic-version": "2023-06-01",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            body = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")
+        try:
+            message = json.loads(detail).get("error", {}).get("message", detail)
+        except json.JSONDecodeError:
+            message = detail or f"Anthropic error {exc.code}."
+        raise HTTPException(status_code=502, detail=message) from exc
+    except urllib.error.URLError as exc:
+        raise HTTPException(status_code=502, detail="Could not reach Anthropic.") from exc
+    content = body.get("content", [])
+    if not content or content[0].get("type") != "text":
+        raise HTTPException(status_code=502, detail="No response from assistant.")
+    return content[0]["text"]
+
+
 app = FastAPI(title="Calorie Tracker Web API")
 
 app.add_middleware(
@@ -226,6 +283,17 @@ def analyze(request: AnalyzeRequest) -> dict:
     validate_image_data_url(request.imageDataUrl)
     api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
     return analyze_with_anthropic(request.imageDataUrl, api_key, request.description) if api_key else mock_estimate()
+
+
+@app.post("/api/chat")
+def chat(request: ChatRequest) -> dict:
+    if not request.messages:
+        raise HTTPException(status_code=400, detail="No messages provided.")
+    api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
+    if not api_key:
+        return {"reply": "The nutrition assistant isn't available yet — the API key hasn't been configured."}
+    reply = chat_with_anthropic(request.messages, api_key)
+    return {"reply": reply}
 
 
 @app.post("/api/analyze-text")

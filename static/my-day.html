@@ -383,6 +383,106 @@
 
   <script type="module" src="/my-day.js"></script>
 
+  <!-- ── Nutrition Chatbot ── -->
+  <div id="chat-bubble" class="chat-bubble" title="Ask a nutrition question">
+    <span class="chat-bubble-icon">🥗</span>
+  </div>
+
+  <div id="chat-panel" class="chat-panel" hidden>
+    <div class="chat-panel-header">
+      <div class="chat-panel-title">
+        <span class="chat-panel-icon">🥗</span>
+        <div>
+          <strong>Nutrition Assistant</strong>
+          <p class="chat-panel-sub">Ask me anything about food &amp; health</p>
+        </div>
+      </div>
+      <button class="chat-close-btn" id="chat-close">✕</button>
+    </div>
+    <div class="chat-messages" id="chat-messages">
+      <div class="chat-msg chat-msg--assistant">
+        <p>Hi! I'm your nutrition assistant. Ask me anything about food, diet, hydration, macros, or healthy eating. 🥦</p>
+      </div>
+    </div>
+    <div class="chat-input-row">
+      <textarea class="chat-input" id="chat-input" rows="1" placeholder="e.g. How much protein do I need?"></textarea>
+      <button class="chat-send-btn" id="chat-send">Send</button>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const bubble   = document.getElementById('chat-bubble');
+      const panel    = document.getElementById('chat-panel');
+      const closeBtn = document.getElementById('chat-close');
+      const input    = document.getElementById('chat-input');
+      const sendBtn  = document.getElementById('chat-send');
+      const msgs     = document.getElementById('chat-messages');
+
+      const history = []; // {role, content}
+
+      bubble.addEventListener('click', () => {
+        panel.hidden = !panel.hidden;
+        if (!panel.hidden) input.focus();
+      });
+      closeBtn.addEventListener('click', () => { panel.hidden = true; });
+
+      function appendMsg(role, text) {
+        const div = document.createElement('div');
+        div.className = `chat-msg chat-msg--${role}`;
+        // Simple markdown-ish: newlines → <br>
+        div.innerHTML = `<p>${text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>')}</p>`;
+        msgs.appendChild(div);
+        msgs.scrollTop = msgs.scrollHeight;
+        return div;
+      }
+
+      function setLoading(on) {
+        sendBtn.disabled = on;
+        input.disabled   = on;
+        sendBtn.textContent = on ? '…' : 'Send';
+      }
+
+      async function sendMessage() {
+        const text = input.value.trim();
+        if (!text) return;
+        input.value = '';
+        input.style.height = '';
+
+        appendMsg('user', text);
+        history.push({ role: 'user', content: text });
+        setLoading(true);
+
+        try {
+          const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages: history }),
+          });
+          const data = await res.json();
+          const reply = data.reply || 'Sorry, I couldn\'t get a response.';
+          appendMsg('assistant', reply);
+          history.push({ role: 'assistant', content: reply });
+        } catch {
+          appendMsg('assistant', 'Something went wrong. Please try again.');
+        } finally {
+          setLoading(false);
+          input.focus();
+        }
+      }
+
+      sendBtn.addEventListener('click', sendMessage);
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+      });
+      // Auto-resize textarea
+      input.addEventListener('input', () => {
+        input.style.height = '';
+        input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+      });
+    })();
+  </script>
+
   <!-- Theme toggle (hidden, delegated to by dropdown) -->
   <button id="theme-toggle" style="display:none" aria-hidden="true"></button>
   <script>
