@@ -110,21 +110,15 @@ function defaultGoals() {
 
 let GOALS = computeGoals();
 
-const RECS = {
-  calories_low:  { icon: '↑', text: 'You still have calorie room — add a balanced meal or healthy snack.' },
-  calories_over: { icon: '↓', text: "You're over your calorie goal. Opt for lighter options like salad or broth soup." },
-  protein_low:   { icon: '↑', text: 'Boost protein with chicken, fish, eggs, Greek yogurt, or legumes.' },
-  carbs_low:     { icon: '↑', text: 'Carbs are low — try whole grains, fruit, or starchy vegetables for energy.' },
-  carbs_over:    { icon: '↓', text: 'Carbs are high. Choose fiber-rich options and cut refined sugars.' },
-  fat_over:      { icon: '↓', text: 'Fat is high. Choose lean proteins and limit fried or processed foods.' },
-  fiber_low:     { icon: '↑', text: 'Fiber is low — eat more vegetables, fruits, beans, or whole grains.' },
-  sugar_over:    { icon: '↓', text: 'Sugar is high. Cut back on sweets, sodas, and processed snacks.' },
-  sodium_over:   { icon: '↓', text: 'Sodium is high. Limit salty snacks, fast food, and canned foods.' },
-  vitA_low:      { icon: '↑', text: 'Low Vitamin A — try carrots, sweet potato, spinach, or eggs.' },
-  vitC_low:      { icon: '↑', text: 'Low Vitamin C — eat citrus fruits, bell peppers, or strawberries.' },
-  calcium_low:   { icon: '↑', text: 'Low Calcium — try dairy, fortified plant milk, leafy greens, or almonds.' },
-  iron_low:      { icon: '↑', text: 'Low Iron — add red meat, lentils, spinach, or fortified cereals.' },
-};
+// Returns a 0-1 fraction representing how far through the eating day we are.
+// Eating window: 7am–9pm (14 hrs). Clamp to [0,1].
+function dayProgress() {
+  const now = new Date();
+  const ptStr = now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles', hour: 'numeric', minute: 'numeric', hour12: false });
+  const [h, m] = ptStr.split(':').map(Number);
+  const minutesSince7am = h * 60 + m - 7 * 60;
+  return Math.max(0, Math.min(1, minutesSince7am / (14 * 60)));
+}
 
 // ─── State ────────────────────────────────────────────────────────────────────
 let viewDate = TODAY;
@@ -330,33 +324,93 @@ document.getElementById('sign-out-btn').addEventListener('click', async () => {
 
 // ─── Status + recommendations ─────────────────────────────────────────────────
 
-function buildRecs(t, entries) {
+function buildRecs(t, entries, dateStr) {
   if (!entries.length) return [];
-  const pct = (v, g) => g > 0 ? Math.round((v / g) * 100) : 0;
-  const keys = [];
-  if (pct(t.calories, GOALS.calories) < 60)        keys.push('calories_low');
-  else if (pct(t.calories, GOALS.calories) > 110)  keys.push('calories_over');
-  if (pct(t.protein, GOALS.protein) < 60)          keys.push('protein_low');
-  if (pct(t.carbs, GOALS.carbs) < 50)              keys.push('carbs_low');
-  else if (pct(t.carbs, GOALS.carbs) > 110)        keys.push('carbs_over');
-  if (pct(t.fat, GOALS.fat) > 110)                 keys.push('fat_over');
-  if (pct(t.fiber, GOALS.fiber) < 60)              keys.push('fiber_low');
-  if (pct(t.sugar, GOALS.sugar) > 100)             keys.push('sugar_over');
-  if (pct(t.sodium, GOALS.sodium) > 100)           keys.push('sodium_over');
-  if (t.vitA < 50)    keys.push('vitA_low');
-  if (t.vitC < 50)    keys.push('vitC_low');
-  if (t.calcium < 50) keys.push('calcium_low');
-  if (t.iron < 50)    keys.push('iron_low');
-  return keys.map(k => RECS[k]).filter(Boolean);
+  const isToday = dateStr === TODAY;
+  const progress = isToday ? dayProgress() : 1;
+  const pct  = (v, g) => g > 0 ? Math.round((v / g) * 100) : 0;
+  const expected = (g) => g * progress; // how much we'd expect by now if eating evenly
+  const meals  = entries.filter(e => (e.mealType || 'meal') === 'meal').length;
+  const snacks = entries.filter(e => e.mealType === 'snack').length;
+  const recs = [];
+
+  // Calorie pace
+  const calPct = pct(t.calories, GOALS.calories);
+  if (isToday && progress > 0.1) {
+    const expectedCalPct = Math.round(progress * 100);
+    if (calPct < expectedCalPct - 20) {
+      recs.push({ icon: '↑', text: `Calories are behind pace — you've had ${calPct}% of your goal but it's ${expectedCalPct}% through your eating day. Add a meal or snack.` });
+    } else if (calPct > 110) {
+      recs.push({ icon: '↓', text: `You're over your calorie goal for the day. Opt for lighter options like salad or broth soup.` });
+    } else if (calPct >= expectedCalPct - 10) {
+      recs.push({ icon: '✓', text: `Calories on pace — ${calPct}% of your goal with ${100 - expectedCalPct}% of the day left.` });
+    }
+  } else if (!isToday && calPct > 110) {
+    recs.push({ icon: '↓', text: `Ended over calorie goal at ${calPct}%.` });
+  }
+
+  // Protein
+  if (pct(t.protein, GOALS.protein) < Math.round(progress * 70))
+    recs.push({ icon: '↑', text: `Protein is behind pace for ${meals} meal${meals !== 1 ? 's' : ''}. Add chicken, fish, eggs, Greek yogurt, or legumes.` });
+
+  // Carbs
+  if (pct(t.carbs, GOALS.carbs) > 115)
+    recs.push({ icon: '↓', text: 'Carbs are high. Choose fiber-rich options and cut refined sugars.' });
+  else if (isToday && pct(t.carbs, GOALS.carbs) < Math.round(progress * 50))
+    recs.push({ icon: '↑', text: 'Carbs are low — try whole grains, fruit, or starchy vegetables for energy.' });
+
+  // Limits (fat, sugar, sodium — only warn when over)
+  if (pct(t.fat, GOALS.fat) > 110)
+    recs.push({ icon: '↓', text: 'Fat is high. Choose lean proteins and limit fried or processed foods.' });
+  if (pct(t.sugar, GOALS.sugar) > 100)
+    recs.push({ icon: '↓', text: 'Sugar is over your daily limit. Cut back on sweets, sodas, and processed snacks.' });
+  if (pct(t.sodium, GOALS.sodium) > 100)
+    recs.push({ icon: '↓', text: 'Sodium is over your daily limit. Limit salty snacks, fast food, and canned foods.' });
+
+  // Fiber
+  if (pct(t.fiber, GOALS.fiber) < Math.round(progress * 60))
+    recs.push({ icon: '↑', text: 'Fiber is low — eat more vegetables, fruits, beans, or whole grains.' });
+
+  // Vitamins
+  const scaleVit = (pct, fdaDv, personalDv) => Math.round(pct * (fdaDv / personalDv));
+  if (scaleVit(t.vitA, 900, GOALS.vitA_dv) < 40)
+    recs.push({ icon: '↑', text: 'Low Vitamin A — try carrots, sweet potato, spinach, or eggs.' });
+  if (scaleVit(t.vitC, 90, GOALS.vitC_dv) < 40)
+    recs.push({ icon: '↑', text: 'Low Vitamin C — eat citrus fruits, bell peppers, or strawberries.' });
+  if (scaleVit(t.calcium, 1300, GOALS.calcium_dv) < 40)
+    recs.push({ icon: '↑', text: 'Low Calcium — try dairy, fortified plant milk, leafy greens, or almonds.' });
+  if (scaleVit(t.iron, 18, GOALS.iron_dv) < 40)
+    recs.push({ icon: '↑', text: 'Low Iron — add red meat, lentils, spinach, or fortified cereals.' });
+
+  // Snack count note
+  if (snacks >= 3)
+    recs.push({ icon: '↓', text: `${snacks} snacks logged today — watch that snacking doesn't crowd out balanced meals.` });
+
+  return recs;
 }
 
-function overallStatus(t, entries) {
+function overallStatus(t, entries, dateStr) {
   if (!entries.length) return { label: 'No meals yet', cls: 'dsp-badge--neutral', sub: 'Add a meal from the analyzer to start tracking.' };
+  const isToday = dateStr === TODAY;
+  const progress = isToday ? dayProgress() : 1;
   const pct = (v, g) => v / g * 100;
+  const meals = entries.filter(e => (e.mealType || 'meal') === 'meal').length;
+
   if ([pct(t.calories, GOALS.calories), pct(t.sodium, GOALS.sodium), pct(t.sugar, GOALS.sugar), pct(t.fat, GOALS.fat)].some(p => p > 115))
-    return { label: 'Over Goal', cls: 'dsp-badge--over', sub: 'Some nutrients are above recommended limits.' };
-  if ([pct(t.calories, GOALS.calories), pct(t.protein, GOALS.protein), pct(t.carbs, GOALS.carbs), pct(t.fiber, GOALS.fiber)].every(p => p >= 65))
-    return { label: 'On Track', cls: 'dsp-badge--good', sub: "You're doing well today. Keep it up!" };
+    return { label: 'Over Goal', cls: 'dsp-badge--over', sub: 'Some nutrients are above recommended limits for the day.' };
+
+  if (isToday && progress > 0) {
+    const calPct = pct(t.calories, GOALS.calories);
+    const expectedPct = progress * 100;
+    if (calPct >= expectedPct - 15 && calPct <= expectedPct + 15 && pct(t.protein, GOALS.protein) >= expectedPct * 0.6)
+      return { label: 'On Pace', cls: 'dsp-badge--good', sub: `${meals} meal${meals !== 1 ? 's' : ''} logged — calories and protein are on track for the time of day.` };
+    if (calPct < expectedPct - 20)
+      return { label: 'Behind Pace', cls: 'dsp-badge--warn', sub: `Only ${Math.round(calPct)}% of your calorie goal so far. You may need another meal or snack.` };
+  }
+
+  if (!isToday && [pct(t.calories, GOALS.calories), pct(t.protein, GOALS.protein), pct(t.carbs, GOALS.carbs)].every(p => p >= 70))
+    return { label: 'Good Day', cls: 'dsp-badge--good', sub: 'Hit most nutrition targets for the day.' };
+
   return { label: 'Needs Attention', cls: 'dsp-badge--warn', sub: 'A few nutrients need some attention.' };
 }
 
@@ -457,14 +511,14 @@ async function render(dateStr) {
   setVitBar('s-bar-iron',    's-iron',    scaleVit(t.iron,    18,   GOALS.iron_dv));
 
   // Status panel
-  const status = overallStatus(t, entries);
+  const status = overallStatus(t, entries, dateStr);
   const badge  = document.getElementById('dsp-badge');
   badge.textContent = status.label;
   badge.className   = `dsp-badge ${status.cls}`;
   document.getElementById('dsp-sub').textContent = status.sub;
 
   const recsEl = document.getElementById('dsp-recs');
-  const recs   = buildRecs(t, entries);
+  const recs   = buildRecs(t, entries, dateStr);
   recsEl.innerHTML = recs.map(r => `
     <div class="rec-card"><span class="rec-icon">${r.icon}</span><span class="rec-text">${r.text}</span></div>
   `).join('');
@@ -482,11 +536,15 @@ async function render(dateStr) {
     const thumbHtml = entry.thumb
       ? `<img class="entry-thumb" src="${entry.thumb}" alt="${entry.title}">`
       : `<div class="entry-thumb-placeholder">&#127869;</div>`;
+    const typeLabel = (entry.mealType || 'meal');
     article.innerHTML = `
       <div class="entry-card-top">
         ${thumbHtml}
         <div class="entry-card-title-row">
-          <strong class="entry-card-title">${entry.title}</strong>
+          <div class="entry-card-title-wrap">
+            <strong class="entry-card-title">${entry.title}</strong>
+            <span class="entry-type-badge entry-type-${typeLabel}">${typeLabel}</span>
+          </div>
           <button class="remove-btn" data-id="${entry.id}">&#10005; Remove</button>
         </div>
       </div>

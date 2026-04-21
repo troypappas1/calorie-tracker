@@ -158,6 +158,7 @@ addToDayButton.addEventListener("click", async () => {
   addDayEntry({
     id:           Date.now().toString(),
     title:        label,
+    mealType:     currentResult.mealType || (scale(currentResult.calories, m) < 250 ? 'snack' : 'meal'),
     calories:     scale(currentResult.calories,     m),
     proteinGrams: scale(currentResult.proteinGrams, m),
     fatGrams:     scale(currentResult.fatGrams,     m),

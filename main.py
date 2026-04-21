@@ -17,7 +17,7 @@ STATIC_DIR = ROOT / "static"
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
 
 NUTRITION_SCHEMA = (
-    '{"title": "dish name", "weightGrams": 350, "sizeDescription": "about the size of a tennis ball", '
+    '{"title": "dish name", "mealType": "meal", "weightGrams": 350, "sizeDescription": "about the size of a tennis ball", '
     '"calories": 550, "proteinGrams": 25, "fatGrams": 18, '
     '"carbsGrams": 60, "fiberGrams": 5, "sugarGrams": 8, "sodiumMg": 450, '
     '"vitaminA": 15, "vitaminC": 20, "calcium": 10, "iron": 8, '
@@ -27,6 +27,9 @@ NUTRITION_NOTES = (
     "weightGrams is your best estimate of the total weight of the food in grams. "
     "sizeDescription is a short everyday comparison like 'about the size of a tennis ball', "
     "'roughly two fists', 'a standard dinner plate portion', etc. "
+    "mealType must be exactly 'meal' or 'snack': use 'snack' for items under ~250 calories or "
+    "clearly snack-like foods (fruit, chips, yogurt, coffee, drink, candy, small bar), "
+    "use 'meal' for everything else. "
     "vitaminA, vitaminC, calcium, iron are % Daily Value as integers. "
     "confidence must be Low, Medium, or High. "
     "notes should have 1-2 short observations about the estimate."
