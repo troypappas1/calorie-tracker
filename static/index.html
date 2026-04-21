@@ -103,7 +103,7 @@
   </script>
 
   <!-- ── Global nav ── -->
-  <header class="global-nav">
+  <header class="global-nav" id="global-nav" style="visibility:hidden">
     <div class="global-nav-inner">
       <span class="nav-brand">🥗 Calorie Tracker</span>
       <nav class="nav-tabs">
@@ -186,7 +186,7 @@
   </div>
 
   <!-- ── Main content ── -->
-  <main class="page">
+  <main class="page" id="main-content" style="visibility:hidden">
     <section class="hero">
       <p class="eyebrow">Food Nutrition Tracker</p>
       <h1>Know what<br>you eat.</h1>
@@ -446,7 +446,11 @@
 
     function dismissIntro() {
       intro.classList.add('intro-exit');
-      setTimeout(() => intro.remove(), 500);
+      setTimeout(() => {
+        intro.remove();
+        document.getElementById('global-nav').style.visibility = 'visible';
+        document.getElementById('main-content').style.visibility = 'visible';
+      }, 500);
     }
 
     function showUser(user) {
