@@ -194,6 +194,22 @@
 
         <div class="sidebar-divider"></div>
 
+        <!-- Water tracker -->
+        <div class="sidebar-water">
+          <div class="sidebar-macro-header">
+            <span class="sidebar-macro-label">💧 Water</span>
+            <span class="sidebar-macro-fraction"><strong id="s-water">0</strong><span class="s-goal"> / 8 glasses</span></span>
+          </div>
+          <div class="sgb-wrap"><div class="sgb" id="sgb-water"></div></div>
+          <div class="water-btns">
+            <button class="water-add-btn" id="water-minus">−</button>
+            <span class="water-oz" id="water-oz-label">0 oz</span>
+            <button class="water-add-btn water-add-btn--plus" id="water-plus">+ Glass</button>
+          </div>
+        </div>
+
+        <div class="sidebar-divider"></div>
+
         <!-- Vitamins toggle button -->
         <button class="vitamins-toggle-btn" id="sidebar-vitamins-toggle">Vitamins &amp; Minerals ▾</button>
         <div id="sidebar-vitamins-section">
@@ -256,6 +272,29 @@
           <p class="dsp-sub" id="dsp-sub">Add a meal from the analyzer to start tracking your day.</p>
         </div>
         <div class="dsp-recs" id="dsp-recs"></div>
+      </div>
+
+      <!-- Hydration panel -->
+      <div class="hydration-panel" id="hydration-panel">
+        <div class="hydration-header">
+          <div>
+            <p class="eyebrow">Hydration</p>
+            <h2 class="hydration-title">Water Intake</h2>
+          </div>
+          <span class="dsp-badge dsp-badge--neutral" id="hydration-badge">No water yet</span>
+        </div>
+        <p class="hydration-sub" id="hydration-sub">Tap + Glass to log each 8 oz glass of water.</p>
+        <div class="hydration-glasses" id="hydration-glasses">
+          <button class="glass-icon" data-glass="1" title="Glass 1">💧</button>
+          <button class="glass-icon" data-glass="2" title="Glass 2">💧</button>
+          <button class="glass-icon" data-glass="3" title="Glass 3">💧</button>
+          <button class="glass-icon" data-glass="4" title="Glass 4">💧</button>
+          <button class="glass-icon" data-glass="5" title="Glass 5">💧</button>
+          <button class="glass-icon" data-glass="6" title="Glass 6">💧</button>
+          <button class="glass-icon" data-glass="7" title="Glass 7">💧</button>
+          <button class="glass-icon" data-glass="8" title="Glass 8">💧</button>
+        </div>
+        <p class="hydration-count" id="hydration-count">0 of 8 glasses · 0 oz</p>
       </div>
 
       <!-- Food log -->

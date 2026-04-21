@@ -1710,6 +1710,105 @@ button:active:not(:disabled) { transform: translateY(1px); }
   line-height: 1.5;
 }
 
+/* ── Water tracker (sidebar) ── */
+.sidebar-water { margin-bottom: 4px; }
+
+.water-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.water-add-btn {
+  background: var(--panel-alt);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 4px 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.water-add-btn:hover { border-color: #2196f3; background: rgba(33,150,243,0.08); }
+.water-add-btn--plus { background: rgba(33,150,243,0.1); border-color: rgba(33,150,243,0.3); color: #1565c0; }
+.water-add-btn--plus:hover { background: rgba(33,150,243,0.18); border-color: #2196f3; }
+
+.water-oz {
+  font-size: 0.78rem;
+  color: var(--muted);
+  flex: 1;
+  text-align: center;
+}
+
+[data-theme="dark"] .water-add-btn--plus { color: #64b5f6; }
+
+/* ── Hydration panel (main) ── */
+.hydration-panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 24px 28px;
+}
+
+.hydration-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.hydration-title {
+  font-size: 1.3rem;
+  margin: 0;
+}
+
+.hydration-sub {
+  font-size: 0.86rem;
+  color: var(--muted);
+  margin: 0 0 20px;
+}
+
+.hydration-glasses {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.glass-icon {
+  font-size: 2rem;
+  background: none;
+  border: 2px solid var(--line);
+  border-radius: var(--r-md);
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.25;
+  transition: opacity 0.15s, border-color 0.15s, transform 0.1s;
+  line-height: 1;
+}
+.glass-icon:hover { opacity: 0.6; transform: scale(1.08); }
+.glass-icon.glass-filled {
+  opacity: 1;
+  border-color: #2196f3;
+  background: rgba(33,150,243,0.08);
+}
+.glass-icon.glass-filled:hover { transform: scale(1.08); }
+
+.hydration-count {
+  font-size: 0.84rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+[data-theme="dark"] .glass-icon.glass-filled { background: rgba(33,150,243,0.15); border-color: #64b5f6; }
+
 /* ── Entry cards ── */
 .entry-card {
   background: var(--panel);

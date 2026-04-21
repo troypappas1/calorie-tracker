@@ -175,6 +175,7 @@ async function removeEntry(dateStr, id) {
 
 async function clearDay(dateStr) {
   saveLocalEntries(dateStr, []);
+  saveWater(dateStr, 0);
   if (currentUser && db) {
     try { await fsSetDoc(fsDoc(db, 'users', currentUser.uid, 'logs', dateStr), { entries: [] }); }
     catch {}
@@ -533,6 +534,9 @@ async function render(dateStr) {
     <div class="rec-card"><span class="rec-icon">${r.icon}</span><span class="rec-text">${r.text}</span></div>
   `).join('');
 
+  // Water
+  renderWater(dateStr);
+
   // Food log
   const log = document.getElementById('food-log-full');
   if (!entries.length) {
@@ -580,6 +584,90 @@ async function render(dateStr) {
   });
 }
 
+// ─── Water / Hydration ────────────────────────────────────────────────────────
+
+const WATER_GOAL = 8; // glasses (8 oz each)
+
+function waterKey(dateStr) { return `ct_water_${dateStr}`; }
+
+function getWater(dateStr) {
+  return parseInt(localStorage.getItem(waterKey(dateStr)) || '0', 10);
+}
+
+function saveWater(dateStr, glasses) {
+  localStorage.setItem(waterKey(dateStr), String(Math.max(0, glasses)));
+}
+
+function renderWater(dateStr) {
+  const glasses = getWater(dateStr);
+  const oz = glasses * 8;
+  const pct = Math.min(Math.round((glasses / WATER_GOAL) * 100), 100);
+
+  // Sidebar
+  const sWater = document.getElementById('s-water');
+  if (sWater) sWater.textContent = glasses;
+  const ozLabel = document.getElementById('water-oz-label');
+  if (ozLabel) ozLabel.textContent = `${oz} oz`;
+  const bar = document.getElementById('sgb-water');
+  if (bar) {
+    bar.style.width = `${pct}%`;
+    bar.style.background = pct >= 100 ? '#4caf50' : pct >= 50 ? '#2196f3' : '#64b5f6';
+  }
+
+  // Main panel glass icons
+  document.querySelectorAll('.glass-icon').forEach(btn => {
+    const n = parseInt(btn.dataset.glass, 10);
+    btn.classList.toggle('glass-filled', n <= glasses);
+  });
+
+  // Count label
+  const countEl = document.getElementById('hydration-count');
+  if (countEl) countEl.textContent = `${glasses} of ${WATER_GOAL} glasses · ${oz} oz`;
+
+  // Badge + sub
+  const badge = document.getElementById('hydration-badge');
+  const sub   = document.getElementById('hydration-sub');
+  if (badge && sub) {
+    if (glasses === 0) {
+      badge.textContent = 'No water yet';
+      badge.className   = 'dsp-badge dsp-badge--neutral';
+      sub.textContent   = 'Tap + Glass in the sidebar or a droplet below to log water.';
+    } else if (glasses < 4) {
+      badge.textContent = 'Getting started';
+      badge.className   = 'dsp-badge dsp-badge--warn';
+      sub.textContent   = `${glasses} glass${glasses !== 1 ? 'es' : ''} down, ${WATER_GOAL - glasses} to go. Keep drinking!`;
+    } else if (glasses < WATER_GOAL) {
+      badge.textContent = 'Almost there';
+      badge.className   = 'dsp-badge dsp-badge--warn';
+      sub.textContent   = `${glasses} of ${WATER_GOAL} glasses — just ${WATER_GOAL - glasses} more to hit your goal.`;
+    } else {
+      badge.textContent = 'Goal reached!';
+      badge.className   = 'dsp-badge dsp-badge--good';
+      sub.textContent   = `Great work — you've hit your daily water goal of ${WATER_GOAL * 8} oz.`;
+    }
+  }
+}
+
+function attachWaterListeners() {
+  document.getElementById('water-plus')?.addEventListener('click', () => {
+    saveWater(viewDate, getWater(viewDate) + 1);
+    renderWater(viewDate);
+  });
+  document.getElementById('water-minus')?.addEventListener('click', () => {
+    saveWater(viewDate, getWater(viewDate) - 1);
+    renderWater(viewDate);
+  });
+  document.querySelectorAll('.glass-icon').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const n = parseInt(btn.dataset.glass, 10);
+      const cur = getWater(viewDate);
+      // Clicking a filled glass removes down to that glass; clicking empty fills up to it
+      saveWater(viewDate, n <= cur ? n - 1 : n);
+      renderWater(viewDate);
+    });
+  });
+}
+
 // ─── Init (no Firebase path) ──────────────────────────────────────────────────
 
 async function initWithoutFirebase() {
@@ -596,6 +684,8 @@ function attachStaticListeners() {
     const label = viewDate === TODAY ? 'today' : viewDate;
     if (confirm(`Clear all meals for ${label}?`)) clearDay(viewDate);
   });
+
+  attachWaterListeners();
 }
 
 // ─── Sidebar date + clear button (also needed in Firebase path) ───────────────
@@ -608,6 +698,8 @@ document.getElementById('clear-day-btn').addEventListener('click', () => {
   const label = viewDate === TODAY ? 'today' : viewDate;
   if (confirm(`Clear all meals for ${label}?`)) clearDay(viewDate);
 });
+
+attachWaterListeners();
 
 // Re-render goals immediately when profile is saved
 window.addEventListener('storage', (e) => {
