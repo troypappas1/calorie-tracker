@@ -75,7 +75,8 @@ final class FoodAnalysisViewModel: ObservableObject {
 
     func logCurrentEstimate() {
         guard let estimate else { return }
-        mealLog.add(estimate)
+        let thumbnail: Data? = inputMode == .photo ? selectedImage?.thumbnailData(maxSize: 80) : nil
+        mealLog.add(estimate, thumbnail: thumbnail)
     }
 
     func saveConfiguration(provider: AppConfiguration.Provider, openAIKey: String, anthropicKey: String) {

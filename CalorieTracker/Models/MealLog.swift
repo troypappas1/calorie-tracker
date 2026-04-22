@@ -4,6 +4,7 @@ struct MealEntry: Codable, Identifiable {
     let id: UUID
     let date: Date
     let estimate: NutritionEstimate
+    var thumbnailData: Data?
 }
 
 struct NutritionTotals {
@@ -43,9 +44,15 @@ final class MealLog: ObservableObject {
         load()
     }
 
-    func add(_ estimate: NutritionEstimate) {
-        let entry = MealEntry(id: UUID(), date: Date(), estimate: estimate)
+    func add(_ estimate: NutritionEstimate, thumbnail: Data? = nil) {
+        let entry = MealEntry(id: UUID(), date: Date(), estimate: estimate, thumbnailData: thumbnail)
         entries.append(entry)
+        save()
+    }
+
+    func clearToday() {
+        let today = Calendar.current.startOfDay(for: Date())
+        entries.removeAll { Calendar.current.startOfDay(for: $0.date) == today }
         save()
     }
 

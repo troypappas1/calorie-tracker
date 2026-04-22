@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MyDayView: View {
     @ObservedObject var mealLog: MealLog
+    @State private var showingClearConfirm = false
 
     var body: some View {
         NavigationStack {
@@ -20,6 +21,21 @@ struct MyDayView: View {
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("My Day")
+            .toolbar {
+                if !mealLog.todayEntries.isEmpty {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Clear Day", role: .destructive) {
+                            showingClearConfirm = true
+                        }
+                        .foregroundStyle(.red)
+                    }
+                }
+            }
+            .confirmationDialog("Clear all meals for today?", isPresented: $showingClearConfirm, titleVisibility: .visible) {
+                Button("Clear Day", role: .destructive) {
+                    mealLog.clearToday()
+                }
+            }
         }
     }
 
@@ -84,36 +100,95 @@ struct MyDayView: View {
                 .font(.headline)
 
             ForEach(mealLog.todayEntries) { entry in
-                mealRow(entry: entry)
-            }
-            .onDelete { offsets in
-                mealLog.remove(at: offsets)
+                entryCard(entry: entry)
             }
         }
     }
 
-    private func mealRow(entry: MealEntry) -> some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(entry.estimate.title)
-                    .font(.subheadline.weight(.semibold))
-                Text(entry.date.formatted(date: .omitted, time: .shortened))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+    private func entryCard(entry: MealEntry) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 12) {
+                if let data = entry.thumbnailData, let uiImage = UIImage(data: data) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 56, height: 56)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                } else {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color(.secondarySystemFill))
+                            .frame(width: 56, height: 56)
+                        Text("🍽️")
+                            .font(.title2)
+                    }
+                }
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(entry.estimate.title)
+                        .font(.subheadline.weight(.semibold))
+                    Text(entry.date.formatted(date: .omitted, time: .shortened))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                Button {
+                    if let idx = mealLog.entries.firstIndex(where: { $0.id == entry.id }) {
+                        mealLog.remove(at: IndexSet(integer: idx))
+                    }
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary)
+                }
             }
-            Spacer()
-            VStack(alignment: .trailing, spacing: 2) {
-                Text("\(entry.estimate.calories) cal")
-                    .font(.subheadline.bold())
-                Text("\(entry.estimate.proteinGrams)g protein")
+
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                entryMacroCell(title: "Calories", value: "\(entry.estimate.calories)")
+                entryMacroCell(title: "Protein", value: "\(entry.estimate.proteinGrams)g")
+                entryMacroCell(title: "Fat", value: "\(entry.estimate.fatGrams)g")
+                entryMacroCell(title: "Carbs", value: "\(entry.estimate.carbsGrams)g")
+                entryMacroCell(title: "Fiber", value: "\(entry.estimate.fiberGrams)g")
+                entryMacroCell(title: "Sugar", value: "\(entry.estimate.sugarGrams)g")
+            }
+
+            HStack {
+                Text("Sodium")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                Spacer()
+                Text("\(entry.estimate.sodiumMg) mg")
+                    .font(.caption.weight(.semibold))
+            }
+
+            Divider()
+
+            VStack(spacing: 8) {
+                microRow(name: "Vitamin A", percent: entry.estimate.vitaminA)
+                microRow(name: "Vitamin C", percent: entry.estimate.vitaminC)
+                microRow(name: "Calcium", percent: entry.estimate.calcium)
+                microRow(name: "Iron", percent: entry.estimate.iron)
             }
         }
-        .padding(14)
+        .padding(16)
         .background(.white)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .shadow(color: .black.opacity(0.04), radius: 8, y: 2)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
+    }
+
+    private func entryMacroCell(title: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(.subheadline.bold())
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     private func macroCell(title: String, value: String) -> some View {
