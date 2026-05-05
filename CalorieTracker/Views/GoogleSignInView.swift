@@ -7,8 +7,9 @@ struct GoogleSignInView: View {
     var body: some View {
         ZStack {
             WarmBackground()
+            ScrollView {
             VStack(spacing: 32) {
-                Spacer()
+                Spacer(minLength: 60)
 
                 VStack(spacing: 12) {
                     EyebrowLabel(text: "Food Photo Nutrition")
@@ -63,9 +64,10 @@ struct GoogleSignInView: View {
                 .padding(24)
                 .ctPanel()
 
-                Spacer()
+                Spacer(minLength: 60)
             }
             .padding(.horizontal, 24)
+            } // ScrollView
         }
     }
 }
