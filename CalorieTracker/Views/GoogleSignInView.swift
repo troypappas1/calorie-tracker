@@ -1,4 +1,5 @@
 import SwiftUI
+import GoogleSignIn
 
 struct GoogleSignInView: View {
     @ObservedObject var auth: GoogleAuthService
@@ -32,8 +33,8 @@ struct GoogleSignInView: View {
                             if auth.isSigningIn {
                                 ProgressView().tint(.white)
                             } else {
-                                Image(systemName: "globe")
-                                    .font(.system(size: 18, weight: .semibold))
+                                Image(systemName: "g.circle.fill")
+                                    .font(.system(size: 20))
                                 Text("Continue with Google")
                                     .font(.ctSerif(17, weight: .bold))
                             }
@@ -54,7 +55,7 @@ struct GoogleSignInView: View {
                             .multilineTextAlignment(.center)
                     }
 
-                    Text("By continuing, you agree to our Terms of Service and Privacy Policy.")
+                    Text("By continuing you agree to our Terms of Service and Privacy Policy.")
                         .font(.ctSerif(12))
                         .foregroundStyle(Color.ctMuted)
                         .multilineTextAlignment(.center)

@@ -1,4 +1,5 @@
 import SwiftUI
+import GoogleSignIn
 
 @main
 struct CalorieTrackerApp: App {
@@ -12,6 +13,9 @@ struct CalorieTrackerApp: App {
             } else {
                 GoogleSignInView(auth: auth)
             }
+        }
+        .onOpenURL { url in
+            auth.handle(url)
         }
     }
 }
