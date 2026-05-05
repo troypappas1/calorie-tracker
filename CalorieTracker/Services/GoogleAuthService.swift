@@ -8,6 +8,9 @@ final class GoogleAuthService: ObservableObject {
     @Published var errorMessage: String?
 
     init() {
+        GIDSignIn.sharedInstance.configuration = GIDConfiguration(
+            clientID: "823181249332-20gm4lmg5fnmj91tntavnd55bvt9bep5.apps.googleusercontent.com"
+        )
         GIDSignIn.sharedInstance.restorePreviousSignIn { [weak self] user, _ in
             Task { @MainActor [weak self] in
                 self?.currentUser = user
