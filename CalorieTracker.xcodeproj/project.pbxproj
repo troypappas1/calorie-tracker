@@ -25,6 +25,10 @@
 		010000000000000000000011 /* GoogleAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000011 /* GoogleAuthService.swift */; };
 		010000000000000000000012 /* GoogleSignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000012 /* GoogleSignInView.swift */; };
 		010000000000000000000013 /* WorkoutComingSoonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000013 /* WorkoutComingSoonView.swift */; };
+		010000000000000000000019 /* WorkoutModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000019 /* WorkoutModels.swift */; };
+		01000000000000000000001A /* WorkoutService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02000000000000000000001A /* WorkoutService.swift */; };
+		01000000000000000000001B /* WorkoutPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02000000000000000000001B /* WorkoutPlanView.swift */; };
+		01000000000000000000001C /* FormAnalysisView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02000000000000000000001C /* FormAnalysisView.swift */; };
 		010000000000000000000014 /* MyDayEmbeddedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000014 /* MyDayEmbeddedView.swift */; };
 		4BFCE8C52FA9814A0040FE10 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 4BFCE8C42FA9814A0040FE10 /* GoogleSignIn */; };
 		4BFCE8C72FA9814A0040FE10 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 4BFCE8C62FA9814A0040FE10 /* GoogleSignInSwift */; };
@@ -56,6 +60,10 @@
 		020000000000000000000011 /* GoogleAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GoogleAuthService.swift; path = CalorieTracker/Services/GoogleAuthService.swift; sourceTree = SOURCE_ROOT; };
 		020000000000000000000012 /* GoogleSignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GoogleSignInView.swift; path = CalorieTracker/Views/GoogleSignInView.swift; sourceTree = SOURCE_ROOT; };
 		020000000000000000000013 /* WorkoutComingSoonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WorkoutComingSoonView.swift; path = CalorieTracker/Views/WorkoutComingSoonView.swift; sourceTree = SOURCE_ROOT; };
+		020000000000000000000019 /* WorkoutModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WorkoutModels.swift; path = CalorieTracker/Models/WorkoutModels.swift; sourceTree = SOURCE_ROOT; };
+		02000000000000000000001A /* WorkoutService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WorkoutService.swift; path = CalorieTracker/Services/WorkoutService.swift; sourceTree = SOURCE_ROOT; };
+		02000000000000000000001B /* WorkoutPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WorkoutPlanView.swift; path = CalorieTracker/Views/WorkoutPlanView.swift; sourceTree = SOURCE_ROOT; };
+		02000000000000000000001C /* FormAnalysisView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FormAnalysisView.swift; path = CalorieTracker/Views/FormAnalysisView.swift; sourceTree = SOURCE_ROOT; };
 		020000000000000000000014 /* MyDayEmbeddedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MyDayEmbeddedView.swift; path = CalorieTracker/Views/MyDayEmbeddedView.swift; sourceTree = SOURCE_ROOT; };
 		4BFCE8D32FA994E30040FE10 /* GoogleService-Info (4).plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info (4).plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -153,7 +161,11 @@
 				020000000000000000000011 /* GoogleAuthService.swift */,
 				020000000000000000000012 /* GoogleSignInView.swift */,
 				020000000000000000000013 /* WorkoutComingSoonView.swift */,
-				020000000000000000000014 /* MyDayEmbeddedView.swift */,
+		020000000000000000000014 /* MyDayEmbeddedView.swift */,
+				020000000000000000000019 /* WorkoutModels.swift */,
+				02000000000000000000001A /* WorkoutService.swift */,
+				02000000000000000000001B /* WorkoutPlanView.swift */,
+				02000000000000000000001C /* FormAnalysisView.swift */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
@@ -250,7 +262,11 @@
 				010000000000000000000011 /* GoogleAuthService.swift in Sources */,
 				010000000000000000000012 /* GoogleSignInView.swift in Sources */,
 				010000000000000000000013 /* WorkoutComingSoonView.swift in Sources */,
-				010000000000000000000014 /* MyDayEmbeddedView.swift in Sources */,
+		010000000000000000000014 /* MyDayEmbeddedView.swift in Sources */,
+				010000000000000000000019 /* WorkoutModels.swift in Sources */,
+				01000000000000000000001A /* WorkoutService.swift in Sources */,
+				01000000000000000000001B /* WorkoutPlanView.swift in Sources */,
+				01000000000000000000001C /* FormAnalysisView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -297,6 +313,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = CalorieTracker/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -355,6 +373,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = CalorieTracker/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;

@@ -306,11 +306,51 @@ struct MyDayTab: View {
 struct WorkoutTab: View {
     var body: some View {
         NavigationStack {
-            WorkoutComingSoonView()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color(.systemGroupedBackground))
-                .navigationTitle("Workout")
-                .navigationBarTitleDisplayMode(.large)
+            List {
+                Section {
+                    NavigationLink {
+                        WorkoutPlanView()
+                    } label: {
+                        HStack(spacing: 14) {
+                            Image(systemName: "chart.line.uptrend.xyaxis")
+                                .font(.system(size: 22))
+                                .foregroundStyle(Color.ctAccent)
+                                .frame(width: 32)
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("Custom Workout Plan")
+                                    .font(.subheadline.bold())
+                                Text("AI-generated plan for your goals")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+
+                    NavigationLink {
+                        FormAnalysisView()
+                    } label: {
+                        HStack(spacing: 14) {
+                            Image(systemName: "video.badge.checkmark")
+                                .font(.system(size: 22))
+                                .foregroundStyle(Color.ctAccent)
+                                .frame(width: 32)
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("Form Analysis")
+                                    .font(.subheadline.bold())
+                                Text("Upload a video for AI form feedback")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                } header: {
+                    Text("Features")
+                }
+            }
+            .navigationTitle("Workout")
+            .navigationBarTitleDisplayMode(.large)
         }
     }
 }
