@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Workout Plan — Nutrition Tracker</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script>if(localStorage.getItem('ct_theme')==='dark')document.documentElement.setAttribute('data-theme','dark');</script>
+  <style>
+    .wp-wrap { max-width: 900px; margin: 0 auto; padding: 32px 20px 100px; }
+
+    /* ── Hero ── */
+    .wp-hero { margin-bottom: 32px; }
+    .wp-hero h1 { font-size: 2rem; font-weight: 800; color: var(--text); margin: 0 0 8px; }
+    .wp-hero p  { color: var(--muted); font-size: 1rem; margin: 0; }
+
+    /* ── Form panel ── */
+    .wp-form-panel {
+      background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg);
+      padding: 28px; margin-bottom: 28px; box-shadow: var(--shadow-sm);
+    }
+    .wp-section-label {
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--muted); margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+      display: block;
+    }
+    .wp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .wp-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .wp-full { grid-column: 1 / -1; }
+    .wp-field { display: flex; flex-direction: column; gap: 6px; }
+    .wp-field label {
+      font-size: 0.8rem; font-weight: 600; color: var(--muted);
+      letter-spacing: 0.03em; text-transform: uppercase;
+    }
+    .wp-field input, .wp-field select, .wp-field textarea {
+      background: var(--panel-alt); border: 1.5px solid var(--line); border-radius: var(--r-sm);
+      padding: 10px 12px; font-size: 0.9rem; color: var(--text); font-family: inherit;
+      transition: border-color 0.14s;
+    }
+    .wp-field input:focus, .wp-field select:focus, .wp-field textarea:focus {
+      outline: none; border-color: var(--accent);
+    }
+    .wp-field textarea { resize: vertical; min-height: 64px; }
+
+    /* Goal pills */
+    .wp-goal-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-bottom: 20px;
+    }
+    .wp-goal-btn {
+      background: var(--panel-alt); border: 2px solid var(--line); border-radius: var(--r-md);
+      padding: 14px 12px; text-align: center; cursor: pointer; transition: all 0.14s;
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+    }
+    .wp-goal-btn:hover { border-color: var(--accent); background: var(--accent-light); }
+    .wp-goal-btn.active { border-color: var(--accent); background: var(--accent-light); }
+    .wp-goal-btn .goal-icon { font-size: 1.6rem; }
+    .wp-goal-btn .goal-label { font-size: 0.8rem; font-weight: 700; color: var(--text); }
+    .wp-goal-btn .goal-sub   { font-size: 0.7rem; color: var(--muted); }
+
+    /* Equipment pills */
+    .wp-equip-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-bottom: 20px;
+    }
+    .wp-equip-btn {
+      background: var(--panel-alt); border: 2px solid var(--line); border-radius: var(--r-md);
+      padding: 12px 14px; cursor: pointer; transition: all 0.14s;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .wp-equip-btn:hover { border-color: var(--accent); background: var(--accent-light); }
+    .wp-equip-btn.active { border-color: var(--accent); background: var(--accent-light); }
+    .wp-equip-icon { font-size: 1.4rem; flex-shrink: 0; }
+    .wp-equip-label { font-size: 0.82rem; font-weight: 700; color: var(--text); }
+
+    /* Generate button */
+    .wp-generate-btn {
+      width: 100%; padding: 14px; background: var(--accent); color: #fff; border: none;
+      border-radius: var(--r-md); font-size: 1rem; font-weight: 800; cursor: pointer;
+      transition: background 0.14s, transform 0.1s; margin-top: 8px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .wp-generate-btn:hover:not(:disabled) { background: var(--accent-dark); transform: translateY(-1px); }
+    .wp-generate-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* ── Loading ── */
+    .wp-loading {
+      display: none; flex-direction: column; align-items: center; gap: 16px;
+      padding: 60px 24px; text-align: center;
+    }
+    .wp-loading.visible { display: flex; }
+    .wp-loading-spinner {
+      width: 48px; height: 48px; border: 3px solid var(--line);
+      border-top-color: var(--accent); border-radius: 50%; animation: wpspin 0.7s linear infinite;
+    }
+    @keyframes wpspin { to { transform: rotate(360deg); } }
+    .wp-loading h3 { font-size: 1.1rem; font-weight: 700; color: var(--text); margin: 0 0 6px; }
+    .wp-loading p  { color: var(--muted); font-size: 0.88rem; margin: 0; }
+
+    /* ── Result ── */
+    .wp-result { display: none; }
+    .wp-result.visible { display: block; }
+
+    .wp-plan-header {
+      background: linear-gradient(135deg, var(--accent) 0%, #a855f7 100%);
+      border-radius: var(--r-lg); padding: 28px 32px; color: #fff; margin-bottom: 24px;
+    }
+    .wp-plan-title { font-size: 1.5rem; font-weight: 800; margin: 0 0 6px; }
+    .wp-plan-overview { font-size: 0.9rem; opacity: 0.9; margin: 0 0 16px; }
+    .wp-plan-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+    .wp-plan-pill {
+      background: rgba(255,255,255,0.2); border-radius: 20px;
+      padding: 4px 12px; font-size: 0.78rem; font-weight: 600;
+    }
+
+    .wp-meta-row {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px; margin-bottom: 24px;
+    }
+    .wp-meta-card {
+      background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md);
+      padding: 16px; box-shadow: var(--shadow-sm); text-align: center;
+    }
+    .wp-meta-val  { font-size: 1.3rem; font-weight: 800; color: var(--accent); margin: 0 0 4px; }
+    .wp-meta-label{ font-size: 0.75rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+
+    /* Phase block */
+    .wp-phase {
+      background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg);
+      margin-bottom: 20px; overflow: hidden; box-shadow: var(--shadow-sm);
+    }
+    .wp-phase-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; background: var(--panel-alt); border-bottom: 1px solid var(--line);
+      cursor: pointer; user-select: none;
+    }
+    .wp-phase-left { display: flex; align-items: center; gap: 12px; }
+    .wp-phase-num {
+      width: 32px; height: 32px; border-radius: 50%; background: var(--accent);
+      color: #fff; font-weight: 800; font-size: 0.85rem;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .wp-phase-name { font-weight: 700; font-size: 0.95rem; color: var(--text); }
+    .wp-phase-weeks { font-size: 0.78rem; color: var(--muted); }
+    .wp-phase-chevron { font-size: 0.8rem; color: var(--muted); transition: transform 0.2s; }
+    .wp-phase.open .wp-phase-chevron { transform: rotate(180deg); }
+
+    .wp-phase-body { display: none; padding: 16px 20px; }
+    .wp-phase.open .wp-phase-body { display: block; }
+    .wp-phase-focus {
+      font-size: 0.83rem; color: var(--muted); margin: 0 0 16px;
+      padding: 8px 12px; background: var(--panel-alt); border-radius: var(--r-sm);
+    }
+
+    /* Day block */
+    .wp-day { margin-bottom: 20px; }
+    .wp-day:last-child { margin-bottom: 0; }
+    .wp-day-label {
+      font-size: 0.8rem; font-weight: 700; color: var(--accent); text-transform: uppercase;
+      letter-spacing: 0.05em; margin: 0 0 10px; display: flex; align-items: center; gap: 8px;
+    }
+    .wp-day-label::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+
+    .wp-exercise-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .wp-exercise-table th {
+      text-align: left; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.05em; color: var(--muted); padding: 6px 8px;
+      border-bottom: 1px solid var(--line);
+    }
+    .wp-exercise-table td { padding: 10px 8px; border-bottom: 1px solid var(--line); color: var(--text); vertical-align: top; }
+    .wp-exercise-table tr:last-child td { border-bottom: none; }
+    .wp-exercise-table tr:hover td { background: var(--panel-alt); }
+    .wp-ex-name { font-weight: 600; }
+    .wp-ex-cue  { font-size: 0.78rem; color: var(--muted); margin-top: 3px; }
+    .wp-badge {
+      display: inline-block; background: var(--accent-light); color: var(--accent);
+      border-radius: 20px; padding: 2px 8px; font-size: 0.72rem; font-weight: 700; white-space: nowrap;
+    }
+
+    /* Tips / cardio panels */
+    .wp-tips-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    .wp-tips-card {
+      background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md);
+      padding: 18px 20px; box-shadow: var(--shadow-sm);
+    }
+    .wp-tips-card h4 { font-size: 0.8rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 12px; }
+    .wp-tips-card p, .wp-tips-card li { font-size: 0.87rem; color: var(--text); line-height: 1.55; }
+    .wp-tips-card ul { padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 5px; }
+
+    .wp-macro-banner {
+      background: var(--accent-light); border: 1px solid rgba(91,76,245,0.2);
+      border-radius: var(--r-md); padding: 14px 18px; margin-bottom: 24px;
+      font-size: 0.9rem; color: var(--text); display: flex; gap: 10px; align-items: flex-start;
+    }
+
+    /* Regenerate btn */
+    .wp-regen-btn {
+      margin-top: 8px; padding: 11px 22px; background: var(--panel); border: 1.5px solid var(--accent);
+      color: var(--accent); border-radius: var(--r-md); font-weight: 700; font-size: 0.9rem;
+      cursor: pointer; transition: all 0.14s;
+    }
+    .wp-regen-btn:hover { background: var(--accent); color: #fff; }
+
+    @media (max-width: 640px) {
+      .wp-grid, .wp-grid-3, .wp-tips-row { grid-template-columns: 1fr; }
+      .wp-full { grid-column: auto; }
+      .wp-hero h1 { font-size: 1.5rem; }
+      .wp-exercise-table { font-size: 0.8rem; }
+      .wp-exercise-table th:nth-child(4),
+      .wp-exercise-table td:nth-child(4) { display: none; }
+    }
+  </style>
+</head>
+<body data-page="workout-plan">
+
+  <!-- ── Nav ── -->
+  <header class="global-nav">
+    <div class="global-nav-inner">
+      <a href="/" class="nav-brand">🥗 Nutrition Tracker</a>
+      <nav class="nav-tabs">
+        <a href="/" class="nav-tab">Analyze</a>
+        <a href="/my-day" class="nav-tab">My Day</a>
+        <a href="/meal-planner" class="nav-tab">Meal Planner</a>
+        <a href="/workout" class="nav-tab">Workout</a>
+        <a href="/workout-plan" class="nav-tab active">Workout Plan</a>
+        <a href="/contact" class="nav-tab">Contact</a>
+      </nav>
+      <div class="nav-right"></div>
+    </div>
+  </header>
+
+  <div class="wp-wrap">
+
+    <!-- Hero -->
+    <div class="wp-hero">
+      <h1>📋 Generate My Workout Plan</h1>
+      <p>Fill in your profile and goals — AI builds a complete multi-week program with every exercise, set, rep, and coaching cue personalized to you.</p>
+    </div>
+
+    <!-- Form -->
+    <div class="wp-form-panel" id="wp-form-panel">
+
+      <!-- Primary Goal -->
+      <span class="wp-section-label">Primary Goal</span>
+      <div class="wp-goal-grid" id="wp-goal-grid">
+        <button class="wp-goal-btn" data-goal="build muscle">
+          <span class="goal-icon">💪</span>
+          <span class="goal-label">Build Muscle</span>
+          <span class="goal-sub">Hypertrophy & strength</span>
+        </button>
+        <button class="wp-goal-btn" data-goal="lose fat">
+          <span class="goal-icon">🔥</span>
+          <span class="goal-label">Lose Fat</span>
+          <span class="goal-sub">Cut & conditioning</span>
+        </button>
+        <button class="wp-goal-btn active" data-goal="general fitness">
+          <span class="goal-icon">🏃</span>
+          <span class="goal-label">General Fitness</span>
+          <span class="goal-sub">Health & longevity</span>
+        </button>
+        <button class="wp-goal-btn" data-goal="improve endurance">
+          <span class="goal-icon">🫀</span>
+          <span class="goal-label">Endurance</span>
+          <span class="goal-sub">Cardio & stamina</span>
+        </button>
+        <button class="wp-goal-btn" data-goal="sport performance">
+          <span class="goal-icon">🏆</span>
+          <span class="goal-label">Sport Performance</span>
+          <span class="goal-sub">Speed, power, agility</span>
+        </button>
+      </div>
+
+      <!-- Profile -->
+      <span class="wp-section-label" style="margin-top:8px">Your Profile</span>
+      <div class="wp-grid">
+        <div class="wp-field">
+          <label>Age</label>
+          <input id="wp-age" type="number" min="13" max="99" placeholder="25">
+        </div>
+        <div class="wp-field">
+          <label>Sex</label>
+          <select id="wp-sex">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </div>
+        <div class="wp-field">
+          <label>Weight (lbs)</label>
+          <input id="wp-weight" type="number" min="80" max="500" placeholder="170">
+        </div>
+        <div class="wp-field">
+          <label>Height</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="wp-height-ft" type="number" min="3" max="8" placeholder="5" style="width:60px">
+            <span style="font-size:0.85rem;color:var(--muted)">ft</span>
+            <input id="wp-height-in" type="number" min="0" max="11" placeholder="10" style="width:60px">
+            <span style="font-size:0.85rem;color:var(--muted)">in</span>
+          </div>
+        </div>
+        <div class="wp-field">
+          <label>Body Fat % <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+          <input id="wp-bf" type="number" min="3" max="60" placeholder="e.g. 18">
+        </div>
+        <div class="wp-field">
+          <label>Experience Level</label>
+          <select id="wp-exp">
+            <option value="beginner">Beginner (0–1 yr)</option>
+            <option value="intermediate" selected>Intermediate (1–3 yr)</option>
+            <option value="advanced">Advanced (3+ yr)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Specific Targets -->
+      <span class="wp-section-label">Specific Targets <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.72rem">(optional)</span></span>
+      <div class="wp-grid">
+        <div class="wp-field">
+          <label>Target Weight (lbs)</label>
+          <input id="wp-target-wt" type="number" min="80" max="500" placeholder="e.g. 185">
+        </div>
+        <div class="wp-field">
+          <label>Target Body Fat %</label>
+          <input id="wp-target-bf" type="number" min="3" max="60" placeholder="e.g. 12">
+        </div>
+        <div class="wp-field">
+          <label>Sport / Activity</label>
+          <input id="wp-sport" type="text" placeholder="e.g. basketball, tennis, golf" maxlength="60">
+        </div>
+        <div class="wp-field">
+          <label>Timeline (weeks)</label>
+          <select id="wp-timeline">
+            <option value="4">4 weeks</option>
+            <option value="8">8 weeks</option>
+            <option value="12" selected>12 weeks</option>
+            <option value="16">16 weeks</option>
+            <option value="24">24 weeks</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Training Preferences -->
+      <span class="wp-section-label">Training Preferences</span>
+      <div class="wp-grid">
+        <div class="wp-field">
+          <label>Days per week</label>
+          <select id="wp-days">
+            <option value="2">2 days</option>
+            <option value="3">3 days</option>
+            <option value="4" selected>4 days</option>
+            <option value="5">5 days</option>
+            <option value="6">6 days</option>
+          </select>
+        </div>
+        <div class="wp-field">
+          <label>Session length</label>
+          <select id="wp-duration">
+            <option value="30">30 min</option>
+            <option value="45">45 min</option>
+            <option value="60" selected>60 min</option>
+            <option value="75">75 min</option>
+            <option value="90">90 min</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Equipment -->
+      <span class="wp-section-label">Available Equipment</span>
+      <div class="wp-equip-grid" id="wp-equip-grid">
+        <button class="wp-equip-btn active" data-equip="full gym">
+          <span class="wp-equip-icon">🏋️</span>
+          <span class="wp-equip-label">Full Gym</span>
+        </button>
+        <button class="wp-equip-btn" data-equip="home (dumbbells)">
+          <span class="wp-equip-icon">🏠</span>
+          <span class="wp-equip-label">Home (Dumbbells)</span>
+        </button>
+        <button class="wp-equip-btn" data-equip="home (bodyweight only)">
+          <span class="wp-equip-icon">🤸</span>
+          <span class="wp-equip-label">Bodyweight Only</span>
+        </button>
+        <button class="wp-equip-btn" data-equip="resistance bands">
+          <span class="wp-equip-icon">🔴</span>
+          <span class="wp-equip-label">Resistance Bands</span>
+        </button>
+      </div>
+
+      <!-- Notes -->
+      <span class="wp-section-label">Injuries, Limitations &amp; Extra Notes <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.72rem">(optional)</span></span>
+      <div class="wp-grid" style="margin-bottom:0">
+        <div class="wp-field">
+          <label>Injuries / Limitations</label>
+          <input id="wp-injuries" type="text" placeholder="e.g. bad left knee, lower back pain" maxlength="120">
+        </div>
+        <div class="wp-field">
+          <label>Extra Notes</label>
+          <input id="wp-notes" type="text" placeholder="e.g. prefer mornings, no machines" maxlength="120">
+        </div>
+      </div>
+
+      <button class="wp-generate-btn" id="wp-generate-btn">
+        <span id="wp-gen-txt">⚡ Generate My Plan</span>
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div class="wp-loading" id="wp-loading">
+      <div class="wp-loading-spinner"></div>
+      <h3>Building your plan…</h3>
+      <p>AI is designing your personalized program. This takes 15–30 seconds.</p>
+    </div>
+
+    <!-- Result -->
+    <div class="wp-result" id="wp-result">
+
+      <div class="wp-plan-header" id="wp-plan-header">
+        <div class="wp-plan-title" id="wp-plan-title"></div>
+        <div class="wp-plan-overview" id="wp-plan-overview"></div>
+        <div class="wp-plan-pills" id="wp-plan-pills"></div>
+      </div>
+
+      <div class="wp-meta-row" id="wp-meta-row"></div>
+
+      <div class="wp-macro-banner" id="wp-macro-banner" style="display:none">
+        🥩 <span id="wp-macro-tip"></span>
+      </div>
+
+      <div id="wp-phases"></div>
+
+      <div class="wp-tips-row" id="wp-tips-row" style="display:none">
+        <div class="wp-tips-card">
+          <h4>🏃 Cardio Recommendation</h4>
+          <p id="wp-cardio-text"></p>
+        </div>
+        <div class="wp-tips-card">
+          <h4>😴 Recovery Tips</h4>
+          <ul id="wp-recovery-list"></ul>
+        </div>
+      </div>
+
+      <div style="text-align:center">
+        <button class="wp-regen-btn" id="wp-regen-btn">↺ Regenerate Plan</button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+  (function() {
+    // ── Goal pills ──
+    document.querySelectorAll('.wp-goal-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.wp-goal-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    // ── Equipment pills ──
+    document.querySelectorAll('.wp-equip-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.wp-equip-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    // ── Pre-fill from saved profile ──
+    (function prefill() {
+      try {
+        const p = JSON.parse(localStorage.getItem('ct_profile') || '{}');
+        if (p.age)    document.getElementById('wp-age').value    = p.age;
+        if (p.sex)    document.getElementById('wp-sex').value    = p.sex;
+        if (p.weight) document.getElementById('wp-weight').value = Math.round(p.weight * 2.20462);
+        if (p.height) {
+          const totalIn = p.height / 2.54;
+          document.getElementById('wp-height-ft').value = Math.floor(totalIn / 12);
+          document.getElementById('wp-height-in').value = Math.round(totalIn % 12);
+        }
+      } catch {}
+    })();
+
+    // ── Generate ──
+    const genBtn  = document.getElementById('wp-generate-btn');
+    const genTxt  = document.getElementById('wp-gen-txt');
+    const loading = document.getElementById('wp-loading');
+    const result  = document.getElementById('wp-result');
+
+    async function generate() {
+      const goal  = document.querySelector('.wp-goal-btn.active')?.dataset.goal || 'general fitness';
+      const equip = document.querySelector('.wp-equip-btn.active')?.dataset.equip || 'full gym';
+
+      const ft    = parseFloat(document.getElementById('wp-height-ft').value) || 0;
+      const ins   = parseFloat(document.getElementById('wp-height-in').value) || 0;
+      const heightIn = ft * 12 + ins || 70;
+
+      const body = {
+        primaryGoal:      goal,
+        age:              parseInt(document.getElementById('wp-age').value) || 25,
+        sex:              document.getElementById('wp-sex').value,
+        weightLbs:        parseFloat(document.getElementById('wp-weight').value) || 170,
+        heightIn,
+        bodyFatPct:       parseFloat(document.getElementById('wp-bf').value) || null,
+        experienceLevel:  document.getElementById('wp-exp').value,
+        targetWeightLbs:  parseFloat(document.getElementById('wp-target-wt').value) || null,
+        targetBodyFatPct: parseFloat(document.getElementById('wp-target-bf').value) || null,
+        sport:            document.getElementById('wp-sport').value.trim(),
+        timelineWeeks:    parseInt(document.getElementById('wp-timeline').value) || 12,
+        daysPerWeek:      parseInt(document.getElementById('wp-days').value) || 4,
+        sessionMinutes:   parseInt(document.getElementById('wp-duration').value) || 60,
+        equipment:        equip,
+        injuriesOrLimits: document.getElementById('wp-injuries').value.trim(),
+        notes:            document.getElementById('wp-notes').value.trim(),
+      };
+
+      genBtn.disabled = true;
+      genTxt.textContent = '⏳ Generating…';
+      loading.classList.add('visible');
+      result.classList.remove('visible');
+
+      try {
+        const res = await fetch('/api/workout-plan', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || `Server error ${res.status}`);
+        }
+        const data = await res.json();
+        renderPlan(data);
+        result.classList.add('visible');
+        result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch(e) {
+        alert('Plan generation failed: ' + e.message);
+      } finally {
+        loading.classList.remove('visible');
+        genBtn.disabled = false;
+        genTxt.textContent = '⚡ Generate My Plan';
+      }
+    }
+
+    genBtn.addEventListener('click', generate);
+    document.getElementById('wp-regen-btn').addEventListener('click', () => {
+      result.classList.remove('visible');
+      document.getElementById('wp-form-panel').scrollIntoView({ behavior: 'smooth' });
+      generate();
+    });
+
+    // ── Render plan ──
+    function renderPlan(d) {
+      document.getElementById('wp-plan-title').textContent    = d.planTitle || 'Your Custom Plan';
+      document.getElementById('wp-plan-overview').textContent = d.overview  || '';
+
+      // Pills
+      const pills = document.getElementById('wp-plan-pills');
+      pills.innerHTML = '';
+      const pillData = [
+        d.weeklyStructure,
+        d.estimatedCalsBurned ? `~${d.estimatedCalsBurned} kcal/session` : null,
+      ].filter(Boolean);
+      pillData.forEach(p => {
+        const span = document.createElement('span');
+        span.className = 'wp-plan-pill';
+        span.textContent = p;
+        pills.appendChild(span);
+      });
+
+      // Meta cards
+      const metaRow = document.getElementById('wp-meta-row');
+      metaRow.innerHTML = '';
+      const goal  = document.querySelector('.wp-goal-btn.active')?.dataset.goal || '';
+      const equip = document.querySelector('.wp-equip-btn.active')?.dataset.equip || '';
+      const metas = [
+        { val: document.getElementById('wp-timeline').value + ' wk', label: 'Timeline' },
+        { val: document.getElementById('wp-days').value + ' days', label: 'Per Week' },
+        { val: document.getElementById('wp-duration').value + ' min', label: 'Per Session' },
+        { val: goal.replace(/\b\w/g,c=>c.toUpperCase()), label: 'Goal' },
+        { val: equip.replace(/\b\w/g,c=>c.toUpperCase()), label: 'Equipment' },
+      ];
+      metas.forEach(m => {
+        const card = document.createElement('div');
+        card.className = 'wp-meta-card';
+        card.innerHTML = `<div class="wp-meta-val">${esc(m.val)}</div><div class="wp-meta-label">${esc(m.label)}</div>`;
+        metaRow.appendChild(card);
+      });
+
+      // Macro tip
+      const macroEl  = document.getElementById('wp-macro-banner');
+      const macroTip = document.getElementById('wp-macro-tip');
+      if (d.macroTip) {
+        macroTip.textContent = d.macroTip;
+        macroEl.style.display = 'flex';
+      } else {
+        macroEl.style.display = 'none';
+      }
+
+      // Phases
+      const phasesEl = document.getElementById('wp-phases');
+      phasesEl.innerHTML = '';
+      (d.phases || []).forEach((phase, pi) => {
+        const div = document.createElement('div');
+        div.className = 'wp-phase';
+        const daysHtml = (phase.days || []).map(day => {
+          const exRows = (day.exercises || []).map(ex => `
+            <tr>
+              <td><div class="wp-ex-name">${esc(ex.name)}</div>${ex.cue ? `<div class="wp-ex-cue">"${esc(ex.cue)}"</div>` : ''}</td>
+              <td><span class="wp-badge">${esc(String(ex.sets || '—'))}</span></td>
+              <td><span class="wp-badge">${esc(String(ex.reps || '—'))}</span></td>
+              <td style="color:var(--muted)">${esc(String(ex.rest || '—'))}</td>
+            </tr>`).join('');
+          return `
+            <div class="wp-day">
+              <div class="wp-day-label">${esc(day.dayLabel || '')}</div>
+              <table class="wp-exercise-table">
+                <thead><tr><th>Exercise</th><th>Sets</th><th>Reps</th><th>Rest</th></tr></thead>
+                <tbody>${exRows}</tbody>
+              </table>
+            </div>`;
+        }).join('');
+
+        div.innerHTML = `
+          <div class="wp-phase-header">
+            <div class="wp-phase-left">
+              <div class="wp-phase-num">${pi + 1}</div>
+              <div>
+                <div class="wp-phase-name">Phase ${pi + 1}${phase.focus ? ' — ' + esc(phase.focus) : ''}</div>
+                <div class="wp-phase-weeks">${esc(String(phase.weeks || ''))}</div>
+              </div>
+            </div>
+            <span class="wp-phase-chevron">▼</span>
+          </div>
+          <div class="wp-phase-body">
+            ${phase.focus ? `<div class="wp-phase-focus">🎯 Focus: ${esc(phase.focus)}</div>` : ''}
+            ${daysHtml}
+          </div>`;
+
+        // Toggle
+        div.querySelector('.wp-phase-header').addEventListener('click', () => {
+          div.classList.toggle('open');
+        });
+        // Auto-open first phase
+        if (pi === 0) div.classList.add('open');
+
+        phasesEl.appendChild(div);
+      });
+
+      // Cardio + recovery
+      const tipsRow = document.getElementById('wp-tips-row');
+      if (d.cardioRecommendation || (d.recoveryTips && d.recoveryTips.length)) {
+        tipsRow.style.display = 'grid';
+        document.getElementById('wp-cardio-text').textContent = d.cardioRecommendation || 'Rest as needed.';
+        const recList = document.getElementById('wp-recovery-list');
+        recList.innerHTML = (d.recoveryTips || []).map(t => `<li>${esc(t)}</li>`).join('');
+      } else {
+        tipsRow.style.display = 'none';
+      }
+    }
+
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+  })();
+  </script>
+</body>
+</html>

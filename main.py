@@ -58,6 +58,44 @@ class MealPlanRequest(BaseModel):
     notes: str = ""
 
 
+class WorkoutVideoRequest(BaseModel):
+    frameDataUrls: list[str]   # up to 6 base64 frames extracted client-side
+    description: str = ""      # optional user hint ("I'm doing squats")
+
+
+class WorkoutChatMessage(BaseModel):
+    role: str
+    content: str
+
+
+class WorkoutChatRequest(BaseModel):
+    messages: list[WorkoutChatMessage]
+    analysisContext: str = ""  # JSON string of the last video analysis result
+
+
+class WorkoutPlanRequest(BaseModel):
+    # Profile
+    age: int = 25
+    sex: str = "male"
+    weightLbs: float = 170.0
+    heightIn: float = 70.0
+    bodyFatPct: float | None = None
+    # Goals
+    primaryGoal: str = "build muscle"   # build muscle | lose fat | improve endurance | sport performance | general fitness
+    targetBodyFatPct: float | None = None
+    targetWeightLbs: float | None = None
+    timelineWeeks: int = 12
+    # Training
+    daysPerWeek: int = 4
+    sessionMinutes: int = 60
+    equipment: str = "full gym"         # full gym | home (dumbbells) | home (bodyweight only) | resistance bands
+    experienceLevel: str = "intermediate"  # beginner | intermediate | advanced
+    # Sport / extra
+    sport: str = ""           # e.g. "basketball", "soccer", "swimming"
+    injuriesOrLimits: str = ""
+    notes: str = ""
+
+
 class ChatMessage(BaseModel):
     role: str   # "user" or "assistant"
     content: str
@@ -327,6 +365,182 @@ def meal_plan_with_anthropic(budget: float, people: int, diet: str, skill: str, 
     return result
 
 
+WORKOUT_ANALYSIS_SCHEMA = '''{
+  "exercise": "Barbell Back Squat",
+  "muscleGroups": {"primary": ["Quadriceps", "Glutes"], "secondary": ["Hamstrings", "Core", "Erector Spinae"]},
+  "repCount": 3,
+  "formScore": 82,
+  "formGrade": "B+",
+  "keyObservations": ["Good depth achieved below parallel", "Slight forward lean on ascent"],
+  "formBreakdowns": [
+    {"issue": "Forward lean", "severity": "minor", "cue": "Chest up, think about pushing the floor away"},
+    {"issue": "Knee cave on rep 2", "severity": "moderate", "cue": "Drive knees out over pinky toes throughout the lift"}
+  ],
+  "positiveFeedback": ["Controlled eccentric", "Neutral spine at bottom"],
+  "safetyFlags": [],
+  "breathingCue": "Brace core and breathe out at the top of each rep",
+  "progressionTips": ["Add 5 lbs next session if form holds", "Film from the side for a better depth check"]
+}'''
+
+WORKOUT_PLAN_SCHEMA = '''{
+  "planTitle": "12-Week Hypertrophy Block",
+  "overview": "A progressive overload program focused on muscle growth across all major groups.",
+  "weeklyStructure": "4 days on, 3 days rest. Upper/Lower split.",
+  "estimatedCalsBurned": 350,
+  "macroTip": "Aim for 0.8–1g protein per lb of bodyweight to support muscle growth.",
+  "phases": [
+    {
+      "phase": 1,
+      "weeks": "1–4",
+      "focus": "Foundation & technique",
+      "days": [
+        {
+          "dayLabel": "Day 1 — Upper (Push)",
+          "exercises": [
+            {"name": "Barbell Bench Press", "sets": 4, "reps": "6–8", "rest": "90s", "cue": "Retract scapula, drive feet into floor"},
+            {"name": "Incline Dumbbell Press", "sets": 3, "reps": "10–12", "rest": "60s", "cue": "Full stretch at bottom"},
+            {"name": "Overhead Press", "sets": 3, "reps": "8–10", "rest": "75s", "cue": "Squeeze glutes to protect lower back"},
+            {"name": "Lateral Raises", "sets": 3, "reps": "15–20", "rest": "45s", "cue": "Lead with elbows, slight forward lean"},
+            {"name": "Tricep Pushdowns", "sets": 3, "reps": "12–15", "rest": "45s", "cue": "Keep elbows pinned"}
+          ]
+        }
+      ]
+    }
+  ],
+  "cardioRecommendation": "2–3 sessions of 20–30 min moderate cardio on rest days.",
+  "recoveryTips": ["Sleep 7–9 hrs", "Walk 8k steps daily", "Foam roll quads and lats post-workout"]
+}'''
+
+
+def analyze_workout_video(frames: list[str], api_key: str, description: str = "") -> dict:
+    content = []
+    for frame_data_url in frames[:6]:
+        try:
+            header, encoded = frame_data_url.split(",", 1)
+            media_type = header.split(":")[1].split(";")[0]
+            if media_type not in {"image/jpeg", "image/png", "image/gif", "image/webp"}:
+                media_type = "image/jpeg"
+            content.append({"type": "image", "source": {"type": "base64", "media_type": media_type, "data": encoded}})
+        except Exception:
+            continue
+
+    if not content:
+        raise HTTPException(status_code=400, detail="No valid frames extracted from video.")
+
+    hint = f'\n\nUser hint: "{description.strip()}"' if description.strip() else ""
+    prompt = (
+        "You are an expert strength and conditioning coach and movement analyst. "
+        "You are viewing frames extracted from a workout video. Analyze the exercise being performed.\n\n"
+        "STEP 1 — IDENTIFY: Name the exact exercise (e.g. 'Barbell Back Squat', 'Push-Up', 'Dumbbell Romanian Deadlift'). "
+        "Identify all muscle groups worked: list primary movers and secondary stabilizers.\n\n"
+        "STEP 2 — REP COUNT: Count how many reps are visible across the frames.\n\n"
+        "STEP 3 — FORM ANALYSIS: Score form 0–100. Look for:\n"
+        "- Joint alignment (knees tracking over toes, neutral spine, elbow position, etc.)\n"
+        "- Range of motion (full extension/flexion, adequate depth)\n"
+        "- Tempo and control (no bouncing, controlled eccentric)\n"
+        "- Body positioning (bar path, foot placement, grip width)\n"
+        "- Breathing and bracing cues\n\n"
+        "STEP 4 — FEEDBACK: List specific form breakdowns with severity (minor/moderate/major) and a single corrective cue for each. "
+        "Also note what the athlete is doing well. Flag any safety concerns.\n"
+        f"{hint}\n\n"
+        f"Reply with ONLY a JSON object:\n{WORKOUT_ANALYSIS_SCHEMA}"
+    )
+    content.append({"type": "text", "text": prompt})
+
+    payload = {
+        "model": "claude-sonnet-4-6",
+        "max_tokens": 1200,
+        "messages": [{"role": "user", "content": content}],
+    }
+    result = call_anthropic(payload, api_key)
+    result["source"] = "anthropic"
+    return result
+
+
+WORKOUT_CHAT_SYSTEM = (
+    "You are an expert personal trainer and strength & conditioning coach embedded in a fitness app. "
+    "You just analyzed a video of the user's workout and have detailed form feedback. "
+    "Help the user understand their form, answer follow-up questions, suggest drills to fix issues, "
+    "explain muscle activation, and give programming advice. "
+    "Keep answers practical, encouraging, and concise. Use plain language. "
+    "ONLY answer questions related to fitness, exercise, form, training, recovery, and sports performance. "
+    "Decline off-topic questions politely."
+)
+
+
+def chat_workout_with_anthropic(messages: list[WorkoutChatMessage], api_key: str, context: str = "") -> str:
+    system = WORKOUT_CHAT_SYSTEM
+    if context.strip():
+        system += f"\n\nLAST VIDEO ANALYSIS RESULT (use this as context for all answers):\n{context.strip()}"
+    payload = {
+        "model": "claude-haiku-4-5-20251001",
+        "max_tokens": 600,
+        "system": system,
+        "messages": [{"role": m.role, "content": m.content} for m in messages],
+    }
+    request = urllib.request.Request(
+        "https://api.anthropic.com/v1/messages",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json", "x-api-key": api_key, "anthropic-version": "2023-06-01"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            body = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")
+        try:
+            message = json.loads(detail).get("error", {}).get("message", detail)
+        except json.JSONDecodeError:
+            message = detail or f"Anthropic error {exc.code}."
+        raise HTTPException(status_code=502, detail=message) from exc
+    except urllib.error.URLError as exc:
+        raise HTTPException(status_code=502, detail="Could not reach Anthropic.") from exc
+    content_blocks = body.get("content", [])
+    if not content_blocks or content_blocks[0].get("type") != "text":
+        raise HTTPException(status_code=502, detail="No response from assistant.")
+    return content_blocks[0]["text"]
+
+
+def generate_workout_plan(req: WorkoutPlanRequest, api_key: str) -> dict:
+    height_ft = int(req.heightIn // 12)
+    height_in = int(req.heightIn % 12)
+    bf_str = f", ~{req.bodyFatPct}% body fat" if req.bodyFatPct else ""
+    target_bf = f"Target body fat: {req.targetBodyFatPct}%" if req.targetBodyFatPct else ""
+    target_wt = f"Target weight: {req.targetWeightLbs} lbs" if req.targetWeightLbs else ""
+    sport_str = f"Sport performance focus: {req.sport}" if req.sport.strip() else ""
+    injuries_str = f"Injuries/limitations: {req.injuriesOrLimits}" if req.injuriesOrLimits.strip() else ""
+    notes_str = f"Additional notes: {req.notes}" if req.notes.strip() else ""
+
+    prompt = (
+        "You are an elite personal trainer and strength & conditioning specialist. "
+        f"Create a detailed {req.timelineWeeks}-week workout plan for the following athlete:\n\n"
+        f"Profile: {req.age}yo {req.sex}, {req.weightLbs} lbs, {height_ft}'{height_in}\"{bf_str}\n"
+        f"Experience: {req.experienceLevel}\n"
+        f"Primary goal: {req.primaryGoal}\n"
+        f"{target_bf}\n{target_wt}\n"
+        f"Training: {req.daysPerWeek} days/week, {req.sessionMinutes} min/session\n"
+        f"Equipment: {req.equipment}\n"
+        f"{sport_str}\n{injuries_str}\n{notes_str}\n\n"
+        "Requirements:\n"
+        "- Structure the plan into phases (e.g. foundation, hypertrophy, strength, peak)\n"
+        "- For EACH training day list every exercise with sets, reps/duration, rest, and a 1-sentence coaching cue\n"
+        "- Include cardio/conditioning recommendations\n"
+        "- Include a macro/nutrition tip personalized to the goal\n"
+        "- Include recovery tips\n"
+        "- Exercises must match the available equipment\n"
+        "- Account for any injuries or sport-specific demands\n\n"
+        f"Reply with ONLY a valid JSON object matching this schema:\n{WORKOUT_PLAN_SCHEMA}"
+    )
+    payload = {
+        "model": "claude-sonnet-4-6",
+        "max_tokens": 4000,
+        "messages": [{"role": "user", "content": prompt}],
+    }
+    result = call_anthropic(payload, api_key)
+    return result
+
+
 app = FastAPI(title="Calorie Tracker Web API")
 
 app.add_middleware(
@@ -431,6 +645,35 @@ def analyze_text(request: AnalyzeTextRequest) -> dict:
     return analyze_text_with_anthropic(request.description.strip(), api_key) if api_key else mock_estimate()
 
 
+@app.post("/api/analyze-workout")
+def analyze_workout(request: WorkoutVideoRequest) -> dict:
+    if not request.frameDataUrls:
+        raise HTTPException(status_code=400, detail="No video frames provided.")
+    api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
+    if not api_key:
+        raise HTTPException(status_code=503, detail="Workout analysis requires an API key.")
+    return analyze_workout_video(request.frameDataUrls, api_key, request.description)
+
+
+@app.post("/api/chat-workout")
+def chat_workout(request: WorkoutChatRequest) -> dict:
+    if not request.messages:
+        raise HTTPException(status_code=400, detail="No messages provided.")
+    api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
+    if not api_key:
+        return {"reply": "The workout assistant isn't available yet — the API key hasn't been configured."}
+    reply = chat_workout_with_anthropic(request.messages, api_key, request.analysisContext)
+    return {"reply": reply}
+
+
+@app.post("/api/workout-plan")
+def workout_plan(request: WorkoutPlanRequest) -> dict:
+    api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
+    if not api_key:
+        raise HTTPException(status_code=503, detail="Workout plan generation requires an API key.")
+    return generate_workout_plan(request, api_key)
+
+
 @app.get("/")
 def index() -> FileResponse:
     return FileResponse(STATIC_DIR / "index.html")
@@ -444,6 +687,16 @@ def my_day() -> FileResponse:
 @app.get("/meal-planner")
 def meal_planner_page() -> FileResponse:
     return FileResponse(STATIC_DIR / "meal-planner.html")
+
+
+@app.get("/workout")
+def workout_page() -> FileResponse:
+    return FileResponse(STATIC_DIR / "workout.html")
+
+
+@app.get("/workout-plan")
+def workout_plan_page() -> FileResponse:
+    return FileResponse(STATIC_DIR / "workout-plan.html")
 
 
 @app.get("/signup")

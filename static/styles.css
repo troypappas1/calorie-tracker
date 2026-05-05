@@ -2331,3 +2331,36 @@ button:active:not(:disabled) { transform: translateY(1px); }
   .chat-panel { width: calc(100vw - 32px); right: 16px; bottom: 88px; }
   .chat-bubble { bottom: 20px; right: 16px; }
 }
+
+/* ── Workout pages — dark mode overrides ── */
+[data-theme="dark"] .wo-upload-panel,
+[data-theme="dark"] .wo-result-panel,
+[data-theme="dark"] .wo-chat-panel,
+[data-theme="dark"] .wp-form-panel,
+[data-theme="dark"] .wp-phase,
+[data-theme="dark"] .wp-tips-card,
+[data-theme="dark"] .wp-meta-card { background: var(--panel); border-color: var(--line); }
+[data-theme="dark"] .wo-upload-zone { background: var(--panel-alt); border-color: rgba(255,255,255,0.1); }
+[data-theme="dark"] .wo-upload-zone:hover { border-color: var(--accent); background: var(--accent-light); }
+[data-theme="dark"] .wo-hint-input,
+[data-theme="dark"] .wp-field input,
+[data-theme="dark"] .wp-field select,
+[data-theme="dark"] .wp-field textarea { background: var(--panel-alt); color: var(--text); border-color: var(--line); }
+[data-theme="dark"] .wo-obs-list li,
+[data-theme="dark"] .wo-issue-card,
+[data-theme="dark"] .wo-phase-focus,
+[data-theme="dark"] .wp-phase-header { background: var(--panel-alt); }
+[data-theme="dark"] .wo-chat-header,
+[data-theme="dark"] .wo-chat-input-row { background: var(--panel-alt); border-color: var(--line); }
+[data-theme="dark"] .wo-chat-input { background: var(--panel); color: var(--text); border-color: var(--line); }
+[data-theme="dark"] .wo-msg--assistant .wo-msg-bubble { background: var(--panel-alt); color: var(--text); }
+[data-theme="dark"] .wo-plan-cta { opacity: 0.95; }
+[data-theme="dark"] .wp-goal-btn,
+[data-theme="dark"] .wp-equip-btn { background: var(--panel-alt); border-color: var(--line); }
+[data-theme="dark"] .wp-goal-btn.active,
+[data-theme="dark"] .wp-equip-btn.active { border-color: var(--accent); background: var(--accent-light); }
+[data-theme="dark"] .wp-macro-banner { background: rgba(124,111,247,0.12); border-color: rgba(124,111,247,0.25); }
+[data-theme="dark"] .wp-exercise-table tr:hover td { background: var(--panel-alt); }
+[data-theme="dark"] .wp-regen-btn { background: var(--panel); border-color: var(--accent); color: var(--accent); }
+[data-theme="dark"] .wp-regen-btn:hover { background: var(--accent); color: #fff; }
+[data-theme="dark"] .wo-safety-banner { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.2); }
