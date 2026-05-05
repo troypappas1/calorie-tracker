@@ -36,44 +36,177 @@ struct AnalyzeTab: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                WarmBackground()
-                ScrollView {
-                    VStack(spacing: 20) {
-                        inputCard
-                        if viewModel.estimate != nil || viewModel.errorMessage != nil {
-                            resultCard
-                        }
+            ScrollView {
+                VStack(spacing: 0) {
+                    modeToggle
+                        .padding(.horizontal, 20)
+                        .padding(.top, 8)
+                        .padding(.bottom, 16)
+
+                    if viewModel.inputMode == .photo {
+                        photoContent
+                    } else {
+                        describeContent
                     }
-                    .padding(16)
-                    .padding(.bottom, 32)
+
+                    if let result = viewModel.estimate {
+                        NutritionResultCard(result: result) {
+                            viewModel.logCurrentEstimate()
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 24)
+                    }
+
+                    if let error = viewModel.errorMessage {
+                        Text(error)
+                            .font(.subheadline)
+                            .foregroundStyle(.red)
+                            .padding(.horizontal, 20)
+                            .padding(.top, 12)
+                    }
+
+                    Spacer(minLength: 40)
                 }
             }
-            .navigationTitle("Food Scan")
+            .background(Color(.systemGroupedBackground))
+            .navigationTitle("Analyze")
             .navigationBarTitleDisplayMode(.large)
         }
     }
 
-    // MARK: Input card
+    // MARK: Mode toggle
 
-    private var inputCard: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Picker("Mode", selection: $viewModel.inputMode) {
-                Label("Photo", systemImage: "camera").tag(FoodAnalysisViewModel.InputMode.photo)
-                Label("Describe", systemImage: "text.bubble").tag(FoodAnalysisViewModel.InputMode.text)
-            }
-            .pickerStyle(.segmented)
-            .onChange(of: viewModel.inputMode) { _, _ in
+    private var modeToggle: some View {
+        HStack(spacing: 0) {
+            modeButton("Photo", icon: "camera.fill", mode: .photo)
+            modeButton("Describe", icon: "text.bubble.fill", mode: .text)
+        }
+        .background(Color(.secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func modeButton(_ label: String, icon: String, mode: FoodAnalysisViewModel.InputMode) -> some View {
+        let selected = viewModel.inputMode == mode
+        return Button {
+            withAnimation(.easeInOut(duration: 0.18)) {
+                viewModel.inputMode = mode
                 viewModel.estimate = nil
                 viewModel.errorMessage = nil
             }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                Text(label).fontWeight(.semibold)
+            }
+            .font(.subheadline)
+            .foregroundStyle(selected ? .white : Color(.secondaryLabel))
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(selected ? Color.ctAccent : Color.clear)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
+        .padding(3)
+    }
 
-            if viewModel.inputMode == .photo {
-                photoSection
-            } else {
-                notesSection
+    // MARK: Photo content
+
+    private var photoContent: some View {
+        VStack(spacing: 0) {
+            // Hero image / upload zone
+            ZStack {
+                if let image = viewModel.selectedImage {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 300)
+                        .clipped()
+                } else {
+                    Rectangle()
+                        .fill(Color(.secondarySystemGroupedBackground))
+                        .frame(maxWidth: .infinity, minHeight: 300)
+                        .overlay {
+                            VStack(spacing: 12) {
+                                Image(systemName: "camera.viewfinder")
+                                    .font(.system(size: 52, weight: .thin))
+                                    .foregroundStyle(Color.ctAccent)
+                                Text("Add a Food Photo")
+                                    .font(.title3.bold())
+                                Text("Tap Camera or Library to get started")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                }
             }
 
+            // Buttons row
+            HStack(spacing: 12) {
+                Button {
+                    viewModel.isShowingCamera = true
+                } label: {
+                    Label("Camera", systemImage: "camera.fill")
+                        .font(.subheadline.bold())
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(Color.ctAccent)
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                }
+
+                PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .images) {
+                    Label("Library", systemImage: "photo.fill")
+                        .font(.subheadline.bold())
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(Color(.secondarySystemGroupedBackground))
+                        .foregroundStyle(Color(.label))
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+            .background(Color(.systemGroupedBackground))
+
+            analyzeAndClearButtons
+        }
+    }
+
+    // MARK: Describe content
+
+    private var describeContent: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Describe your meal")
+                .font(.headline)
+                .padding(.horizontal, 20)
+
+            ZStack(alignment: .topLeading) {
+                if viewModel.descriptionText.isEmpty {
+                    Text("e.g. \"Grilled chicken with rice and broccoli, medium portion\"")
+                        .foregroundStyle(Color(.placeholderText))
+                        .font(.body)
+                        .padding(.top, 8)
+                        .padding(.leading, 5)
+                        .allowsHitTesting(false)
+                }
+                TextEditor(text: $viewModel.descriptionText)
+                    .font(.body)
+                    .frame(minHeight: 140)
+                    .scrollContentBackground(.hidden)
+            }
+            .padding(16)
+            .background(Color(.secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .padding(.horizontal, 20)
+
+            analyzeAndClearButtons
+        }
+    }
+
+    // MARK: Shared buttons
+
+    private var analyzeAndClearButtons: some View {
+        VStack(spacing: 10) {
             Button {
                 Task {
                     if viewModel.inputMode == .photo {
@@ -87,121 +220,25 @@ struct AnalyzeTab: View {
                     if viewModel.isAnalyzing {
                         ProgressView().tint(.white)
                     } else {
-                        Text("Analyze Nutrition")
+                        Text("Analyze Nutrition").fontWeight(.bold)
                     }
                 }
                 .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(isAnalyzeDisabled ? Color(.systemFill) : Color.ctAccent)
+                .foregroundStyle(isAnalyzeDisabled ? Color(.secondaryLabel) : .white)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
             }
-            .buttonStyle(PrimaryButtonStyle())
             .disabled(isAnalyzeDisabled)
 
             if viewModel.selectedImage != nil || !viewModel.descriptionText.isEmpty {
                 Button("Clear") { viewModel.clearInput() }
-                    .buttonStyle(SecondaryButtonStyle())
-                    .frame(maxWidth: .infinity)
-            }
-
-            if let error = viewModel.errorMessage {
-                Text(error).font(.ctSerif(13)).foregroundStyle(.red)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
         }
-        .padding(20)
-        .ctPanel()
-    }
-
-    // MARK: Photo section
-
-    private var photoSection: some View {
-        VStack(spacing: 12) {
-            if let image = viewModel.selectedImage {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(height: 240)
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
-            } else {
-                uploadZone
-            }
-
-            HStack(spacing: 12) {
-                Button {
-                    viewModel.isShowingCamera = true
-                } label: {
-                    Label("Camera", systemImage: "camera")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(PrimaryButtonStyle())
-
-                PhotosPicker(
-                    selection: $viewModel.selectedPhotoItem,
-                    matching: .images
-                ) {
-                    Label("Library", systemImage: "photo")
-                        .font(.ctSerif(16, weight: .bold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(Color.ctMuted.opacity(0.12))
-                        .clipShape(Capsule())
-                }
-                .foregroundStyle(Color.ctText)
-            }
-        }
-    }
-
-    private var uploadZone: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "photo.on.rectangle.angled")
-                .font(.system(size: 40))
-                .foregroundStyle(Color.ctAccent)
-            Text("Choose a food photo")
-                .font(.ctSerifBold(16))
-                .foregroundStyle(Color.ctText)
-            Text("Tap Camera or Library below")
-                .font(.ctSerif(13))
-                .foregroundStyle(Color.ctMuted)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 36)
-        .background(Color(red: 1, green: 0.98, blue: 0.945))
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .overlay(RoundedRectangle(cornerRadius: 20).stroke(style: StrokeStyle(lineWidth: 2, dash: [6])).foregroundStyle(Color.ctAccentDark.opacity(0.3)))
-    }
-
-    // MARK: Notes section
-
-    private var notesSection: some View {
-        ZStack(alignment: .topLeading) {
-            if viewModel.descriptionText.isEmpty {
-                Text("e.g. \u{201C}A bowl of oatmeal with blueberries and honey\u{201D}")
-                    .font(.ctSerif(15))
-                    .foregroundStyle(Color.ctMuted)
-                    .padding(.top, 20)
-                    .padding(.leading, 18)
-                    .allowsHitTesting(false)
-            }
-            TextEditor(text: $viewModel.descriptionText)
-                .font(.ctSerif(15))
-                .foregroundStyle(Color.ctText)
-                .frame(minHeight: 120)
-                .scrollContentBackground(.hidden)
-                .padding(12)
-                .background(Color(red: 1, green: 0.98, blue: 0.945))
-                .clipShape(RoundedRectangle(cornerRadius: 20))
-                .overlay(RoundedRectangle(cornerRadius: 20).stroke(style: StrokeStyle(lineWidth: 2, dash: [6])).foregroundStyle(Color.ctAccentDark.opacity(0.3)))
-        }
-    }
-
-    // MARK: Result card
-
-    @ViewBuilder
-    private var resultCard: some View {
-        if let result = viewModel.estimate {
-            NutritionResultCard(result: result) {
-                viewModel.logCurrentEstimate()
-            }
-        } else if let error = viewModel.errorMessage {
-            Text(error).font(.ctSerif(14)).foregroundStyle(.red).padding(20).ctPanel()
-        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 8)
     }
 
     private var isAnalyzeDisabled: Bool {
@@ -215,42 +252,52 @@ struct AnalyzeTab: View {
 
 struct MyDayTab: View {
     @ObservedObject var mealLog: MealLog
+    @State private var showClearConfirm = false
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                WarmBackground()
-                Group {
-                    if mealLog.todayEntries.isEmpty {
-                        emptyState
-                    } else {
-                        ScrollView {
-                            MyDayEmbeddedView(mealLog: mealLog)
-                                .padding(16)
-                                .padding(.bottom, 32)
-                        }
+            Group {
+                if mealLog.todayEntries.isEmpty {
+                    emptyState
+                } else {
+                    ScrollView {
+                        MyDayEmbeddedView(mealLog: mealLog)
+                            .padding(16)
+                            .padding(.bottom, 32)
                     }
+                    .background(Color(.systemGroupedBackground))
                 }
             }
             .navigationTitle("My Day")
             .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                if !mealLog.todayEntries.isEmpty {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Clear") { showClearConfirm = true }
+                            .foregroundStyle(.red)
+                    }
+                }
+            }
+            .confirmationDialog("Clear all meals for today?", isPresented: $showClearConfirm, titleVisibility: .visible) {
+                Button("Clear Day", role: .destructive) { mealLog.clearToday() }
+            }
         }
     }
 
     private var emptyState: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 16) {
             Image(systemName: "fork.knife")
-                .font(.system(size: 48))
+                .font(.system(size: 56, weight: .thin))
                 .foregroundStyle(Color.ctAccent)
-            Text("No meals logged today")
-                .font(.ctSerifBold(20))
-                .foregroundStyle(Color.ctText)
-            Text("Analyze a meal and tap\n\"Add to My Day\" to log it here.")
-                .font(.ctSerif(15))
-                .foregroundStyle(Color.ctMuted)
+            Text("Nothing logged yet")
+                .font(.title3.bold())
+            Text("Analyze a meal and tap\n\"Add to My Day\" to track it here.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemGroupedBackground))
     }
 }
 
@@ -259,13 +306,11 @@ struct MyDayTab: View {
 struct WorkoutTab: View {
     var body: some View {
         NavigationStack {
-            ZStack {
-                WarmBackground()
-                WorkoutComingSoonView()
-                    .padding(20)
-            }
-            .navigationTitle("Workout")
-            .navigationBarTitleDisplayMode(.large)
+            WorkoutComingSoonView()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color(.systemGroupedBackground))
+                .navigationTitle("Workout")
+                .navigationBarTitleDisplayMode(.large)
         }
     }
 }
@@ -278,16 +323,42 @@ struct ProfileTab: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                WarmBackground()
-                ScrollView {
-                    VStack(spacing: 20) {
-                        profileCard
-                        aboutCard
-                        signOutButton
+            List {
+                // Profile header
+                Section {
+                    HStack(spacing: 14) {
+                        Image(systemName: "person.circle.fill")
+                            .font(.system(size: 52))
+                            .foregroundStyle(Color.ctAccent)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(auth.currentUser?.profile?.name ?? "User")
+                                .font(.headline)
+                            Text(auth.currentUser?.profile?.email ?? "")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
                     }
-                    .padding(16)
-                    .padding(.bottom, 32)
+                    .padding(.vertical, 6)
+                }
+
+                // About
+                Section("About") {
+                    Label("Powered by Claude AI", systemImage: "brain")
+                    Label("Photos analyzed privately", systemImage: "lock.shield")
+                    Label("Data stored on your device", systemImage: "iphone")
+                }
+
+                // Sign out
+                Section {
+                    Button(role: .destructive) {
+                        showSignOutConfirm = true
+                    } label: {
+                        HStack {
+                            Spacer()
+                            Text("Sign Out")
+                            Spacer()
+                        }
+                    }
                 }
             }
             .navigationTitle("Profile")
@@ -296,51 +367,6 @@ struct ProfileTab: View {
         .confirmationDialog("Sign out of your account?", isPresented: $showSignOutConfirm, titleVisibility: .visible) {
             Button("Sign Out", role: .destructive) { auth.signOut() }
         }
-    }
-
-    private var profileCard: some View {
-        HStack(spacing: 16) {
-            Image(systemName: "person.circle.fill")
-                .font(.system(size: 56))
-                .foregroundStyle(Color.ctAccent)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(auth.currentUser?.profile?.name ?? "User")
-                    .font(.ctSerifBold(18))
-                    .foregroundStyle(Color.ctText)
-                Text(auth.currentUser?.profile?.email ?? "")
-                    .font(.ctSerif(14))
-                    .foregroundStyle(Color.ctMuted)
-            }
-            Spacer()
-        }
-        .padding(20)
-        .ctPanel()
-    }
-
-    private var aboutCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("About")
-                .font(.ctSerifBold(16))
-                .foregroundStyle(Color.ctText)
-            Text("Calorie Tracker uses Claude AI to analyze your meals from photos or descriptions and give you a full nutrition breakdown.")
-                .font(.ctSerif(14))
-                .foregroundStyle(Color.ctMuted)
-                .lineSpacing(4)
-        }
-        .padding(20)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .ctPanel()
-    }
-
-    private var signOutButton: some View {
-        Button("Sign Out") { showSignOutConfirm = true }
-            .font(.ctSerif(16, weight: .bold))
-            .foregroundStyle(.red)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
-            .background(Color.red.opacity(0.08))
-            .clipShape(Capsule())
     }
 }
 
