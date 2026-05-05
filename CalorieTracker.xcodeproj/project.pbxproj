@@ -21,6 +21,11 @@
 		01000000000000000000000C /* ClaudeNutritionAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02000000000000000000000D /* ClaudeNutritionAnalyzer.swift */; };
 		01000000000000000000000D /* MealLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02000000000000000000000E /* MealLog.swift */; };
 		01000000000000000000000E /* MyDayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02000000000000000000000F /* MyDayView.swift */; };
+		010000000000000000000010 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000010 /* Theme.swift */; };
+		010000000000000000000011 /* GoogleAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000011 /* GoogleAuthService.swift */; };
+		010000000000000000000012 /* GoogleSignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000012 /* GoogleSignInView.swift */; };
+		010000000000000000000013 /* WorkoutComingSoonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000013 /* WorkoutComingSoonView.swift */; };
+		010000000000000000000014 /* MyDayEmbeddedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000014 /* MyDayEmbeddedView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,6 +45,11 @@
 		02000000000000000000000D /* ClaudeNutritionAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeNutritionAnalyzer.swift; sourceTree = "<group>"; };
 		02000000000000000000000E /* MealLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealLog.swift; sourceTree = "<group>"; };
 		02000000000000000000000F /* MyDayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyDayView.swift; sourceTree = "<group>"; };
+		020000000000000000000010 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Theme.swift; path = CalorieTracker/Theme.swift; sourceTree = SOURCE_ROOT; };
+		020000000000000000000011 /* GoogleAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GoogleAuthService.swift; path = CalorieTracker/Services/GoogleAuthService.swift; sourceTree = SOURCE_ROOT; };
+		020000000000000000000012 /* GoogleSignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GoogleSignInView.swift; path = CalorieTracker/Views/GoogleSignInView.swift; sourceTree = SOURCE_ROOT; };
+		020000000000000000000013 /* WorkoutComingSoonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WorkoutComingSoonView.swift; path = CalorieTracker/Views/WorkoutComingSoonView.swift; sourceTree = SOURCE_ROOT; };
+		020000000000000000000014 /* MyDayEmbeddedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MyDayEmbeddedView.swift; path = CalorieTracker/Views/MyDayEmbeddedView.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -151,7 +161,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1600;
-				LastUpgradeCheck = 1600;
+				LastUpgradeCheck = 2640;
 				TargetAttributes = {
 					050000000000000000000000 = {
 						CreatedOnToolsVersion = 16.0;
@@ -205,6 +215,11 @@
 				01000000000000000000000C /* ClaudeNutritionAnalyzer.swift in Sources */,
 				01000000000000000000000D /* MealLog.swift in Sources */,
 				01000000000000000000000E /* MyDayView.swift in Sources */,
+				010000000000000000000010 /* Theme.swift in Sources */,
+				010000000000000000000011 /* GoogleAuthService.swift in Sources */,
+				010000000000000000000012 /* GoogleSignInView.swift in Sources */,
+				010000000000000000000013 /* WorkoutComingSoonView.swift in Sources */,
+				010000000000000000000014 /* MyDayEmbeddedView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -217,13 +232,40 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = DGA46LB28F;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = CalorieTracker/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -232,9 +274,11 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.troy.calorietracker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -248,12 +292,38 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = DGA46LB28F;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = CalorieTracker/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -265,7 +335,9 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.troy.calorietracker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
