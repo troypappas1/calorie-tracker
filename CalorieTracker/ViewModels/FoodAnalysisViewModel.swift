@@ -5,7 +5,6 @@ import UIKit
 
 @MainActor
 final class FoodAnalysisViewModel: ObservableObject {
-    @Published var configuration: AppConfiguration
     @Published var selectedPhotoItem: PhotosPickerItem?
     @Published var selectedImage: UIImage?
     @Published var descriptionText: String = ""
@@ -14,17 +13,11 @@ final class FoodAnalysisViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var isAnalyzing = false
     @Published var isShowingCamera = false
-    @Published var isShowingSettings = false
 
-    enum InputMode {
-        case photo, text
-    }
+    enum InputMode { case photo, text }
 
     let mealLog = MealLog()
-
-    init(configuration: AppConfiguration = .load()) {
-        self.configuration = configuration
-    }
+    private let analyzer = ClaudeNutritionAnalyzer(apiKey: Secrets.claudeAPIKey)
 
     func loadSelectedPhoto() async {
         guard let selectedPhotoItem else { return }
@@ -41,14 +34,11 @@ final class FoodAnalysisViewModel: ObservableObject {
     }
 
     func analyzeSelectedImage() async {
-        guard let selectedImage else {
-            errorMessage = "Choose a photo first."
-            return
-        }
+        guard let selectedImage else { errorMessage = "Choose a photo first."; return }
         isAnalyzing = true
         errorMessage = nil
         do {
-            estimate = try await analyzer().analyze(image: selectedImage)
+            estimate = try await analyzer.analyze(image: selectedImage)
         } catch {
             errorMessage = error.localizedDescription
             estimate = nil
@@ -58,14 +48,11 @@ final class FoodAnalysisViewModel: ObservableObject {
 
     func analyzeDescription() async {
         let text = descriptionText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else {
-            errorMessage = "Enter a meal description first."
-            return
-        }
+        guard !text.isEmpty else { errorMessage = "Enter a meal description first."; return }
         isAnalyzing = true
         errorMessage = nil
         do {
-            estimate = try await analyzer().analyze(description: text)
+            estimate = try await analyzer.analyze(description: text)
         } catch {
             errorMessage = error.localizedDescription
             estimate = nil
@@ -79,25 +66,17 @@ final class FoodAnalysisViewModel: ObservableObject {
         mealLog.add(estimate, thumbnail: thumbnail)
     }
 
-    func saveConfiguration(provider: AppConfiguration.Provider, openAIKey: String, anthropicKey: String) {
-        configuration = AppConfiguration(provider: provider, openAIKey: openAIKey, anthropicKey: anthropicKey)
-        configuration.save()
-    }
-
     func setCapturedImage(_ image: UIImage?) {
         selectedImage = image
         estimate = nil
         errorMessage = nil
     }
 
-    private func analyzer() -> NutritionAnalyzing {
-        switch configuration.provider {
-        case .mock:
-            return MockNutritionAnalyzer()
-        case .anthropic:
-            return ClaudeNutritionAnalyzer(apiKey: configuration.anthropicKey)
-        case .openAI:
-            return OpenAINutritionAnalyzer(apiKey: configuration.openAIKey)
-        }
+    func clearInput() {
+        selectedImage = nil
+        selectedPhotoItem = nil
+        descriptionText = ""
+        estimate = nil
+        errorMessage = nil
     }
 }

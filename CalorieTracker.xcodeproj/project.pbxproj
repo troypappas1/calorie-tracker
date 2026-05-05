@@ -26,6 +26,11 @@
 		010000000000000000000012 /* GoogleSignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000012 /* GoogleSignInView.swift */; };
 		010000000000000000000013 /* WorkoutComingSoonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000013 /* WorkoutComingSoonView.swift */; };
 		010000000000000000000014 /* MyDayEmbeddedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000014 /* MyDayEmbeddedView.swift */; };
+		4BFCE8C52FA9814A0040FE10 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 4BFCE8C42FA9814A0040FE10 /* GoogleSignIn */; };
+		4BFCE8C72FA9814A0040FE10 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 4BFCE8C62FA9814A0040FE10 /* GoogleSignInSwift */; };
+		4BFCE8D42FA994E30040FE10 /* GoogleService-Info (4).plist in Resources */ = {isa = PBXBuildFile; fileRef = 4BFCE8D32FA994E30040FE10 /* GoogleService-Info (4).plist */; };
+		010000000000000000000015 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000015 /* Assets.xcassets */; };
+		010000000000000000000016 /* Secrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 020000000000000000000016 /* Secrets.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -45,11 +50,14 @@
 		02000000000000000000000D /* ClaudeNutritionAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeNutritionAnalyzer.swift; sourceTree = "<group>"; };
 		02000000000000000000000E /* MealLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealLog.swift; sourceTree = "<group>"; };
 		02000000000000000000000F /* MyDayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyDayView.swift; sourceTree = "<group>"; };
+		020000000000000000000016 /* Secrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Secrets.swift; path = CalorieTracker/Secrets.swift; sourceTree = SOURCE_ROOT; };
+		020000000000000000000015 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = CalorieTracker/Assets.xcassets; sourceTree = SOURCE_ROOT; };
 		020000000000000000000010 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Theme.swift; path = CalorieTracker/Theme.swift; sourceTree = SOURCE_ROOT; };
 		020000000000000000000011 /* GoogleAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GoogleAuthService.swift; path = CalorieTracker/Services/GoogleAuthService.swift; sourceTree = SOURCE_ROOT; };
 		020000000000000000000012 /* GoogleSignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GoogleSignInView.swift; path = CalorieTracker/Views/GoogleSignInView.swift; sourceTree = SOURCE_ROOT; };
 		020000000000000000000013 /* WorkoutComingSoonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WorkoutComingSoonView.swift; path = CalorieTracker/Views/WorkoutComingSoonView.swift; sourceTree = SOURCE_ROOT; };
 		020000000000000000000014 /* MyDayEmbeddedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MyDayEmbeddedView.swift; path = CalorieTracker/Views/MyDayEmbeddedView.swift; sourceTree = SOURCE_ROOT; };
+		4BFCE8D32FA994E30040FE10 /* GoogleService-Info (4).plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info (4).plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,6 +65,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4BFCE8C52FA9814A0040FE10 /* GoogleSignIn in Frameworks */,
+				4BFCE8C72FA9814A0040FE10 /* GoogleSignInSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -68,13 +78,16 @@
 			children = (
 				040000000000000000000001 /* CalorieTracker */,
 				040000000000000000000002 /* Products */,
+				4BFCE8C22FA97FBC0040FE10 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
 		040000000000000000000001 /* CalorieTracker */ = {
 			isa = PBXGroup;
 			children = (
+				4BFCE8D32FA994E30040FE10 /* GoogleService-Info (4).plist */,
 				020000000000000000000001 /* CalorieTrackerApp.swift */,
+					020000000000000000000016 /* Secrets.swift */,
 				020000000000000000000002 /* ContentView.swift */,
 				040000000000000000000003 /* Models */,
 				040000000000000000000004 /* Services */,
@@ -133,6 +146,18 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
+		4BFCE8C22FA97FBC0040FE10 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				020000000000000000000010 /* Theme.swift */,
+				020000000000000000000011 /* GoogleAuthService.swift */,
+				020000000000000000000012 /* GoogleSignInView.swift */,
+				020000000000000000000013 /* WorkoutComingSoonView.swift */,
+				020000000000000000000014 /* MyDayEmbeddedView.swift */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -177,6 +202,10 @@
 				Base,
 			);
 			mainGroup = 040000000000000000000000;
+			packageReferences = (
+				4BFCE8C32FA9814A0040FE10 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				4BFCE8C82FA9844E0040FE10 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			productRefGroup = 040000000000000000000002 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -191,6 +220,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4BFCE8D42FA994E30040FE10 /* GoogleService-Info (4).plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -215,6 +245,7 @@
 				01000000000000000000000C /* ClaudeNutritionAnalyzer.swift in Sources */,
 				01000000000000000000000D /* MealLog.swift in Sources */,
 				01000000000000000000000E /* MyDayView.swift in Sources */,
+				010000000000000000000016 /* Secrets.swift in Sources */,
 				010000000000000000000010 /* Theme.swift in Sources */,
 				010000000000000000000011 /* GoogleAuthService.swift in Sources */,
 				010000000000000000000012 /* GoogleSignInView.swift in Sources */,
@@ -366,6 +397,38 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		4BFCE8C32FA9814A0040FE10 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.1.0;
+			};
+		};
+		4BFCE8C82FA9844E0040FE10 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.12.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		4BFCE8C42FA9814A0040FE10 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4BFCE8C32FA9814A0040FE10 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		4BFCE8C62FA9814A0040FE10 /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4BFCE8C32FA9814A0040FE10 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 060000000000000000000000 /* Project object */;
 }
