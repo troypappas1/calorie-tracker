@@ -5,227 +5,889 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Workout Analyzer — Nutrition Tracker</title>
   <link rel="stylesheet" href="/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script>if(localStorage.getItem('ct_theme')==='dark')document.documentElement.setAttribute('data-theme','dark');</script>
   <style>
-    /* ── Page layout ── */
-    .wo-wrap { max-width: 900px; margin: 0 auto; padding: 32px 20px 100px; }
-
-    /* ── Hero ── */
-    .wo-hero { margin-bottom: 32px; }
-    .wo-hero h1 { font-size: 2rem; font-weight: 800; color: var(--text); margin: 0 0 8px; }
-    .wo-hero p  { color: var(--muted); font-size: 1rem; margin: 0; }
-
-    /* ── Upload zone ── */
-    .wo-upload-panel {
-      background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg);
-      padding: 28px; margin-bottom: 24px; box-shadow: var(--shadow-sm);
-    }
-    .wo-upload-zone {
-      border: 2px dashed var(--line); border-radius: var(--r-md); padding: 48px 24px;
-      text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s;
-      position: relative; background: var(--panel-alt);
-    }
-    .wo-upload-zone:hover, .wo-upload-zone.drag-over {
-      border-color: var(--accent); background: var(--accent-light);
-    }
-    .wo-upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-    .wo-upload-icon { font-size: 2.8rem; margin-bottom: 12px; display: block; }
-    .wo-upload-zone h3 { font-size: 1.05rem; font-weight: 700; color: var(--text); margin: 0 0 6px; }
-    .wo-upload-zone p  { font-size: 0.85rem; color: var(--muted); margin: 0; }
-
-    /* ── Video preview ── */
-    .wo-preview-wrap { margin-top: 20px; display: none; }
-    .wo-preview-wrap.visible { display: block; }
-    .wo-preview-video {
-      width: 100%; max-height: 380px; border-radius: var(--r-md); background: #000;
-      display: block; object-fit: contain;
-    }
-    .wo-preview-meta {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-top: 10px; flex-wrap: wrap; gap: 10px;
-    }
-    .wo-file-name { font-size: 0.85rem; color: var(--muted); }
-    .wo-hint-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
-    .wo-hint-input {
-      flex: 1; min-width: 160px; background: var(--panel-alt); border: 1.5px solid var(--line);
-      border-radius: var(--r-sm); padding: 9px 12px; font-size: 0.9rem; color: var(--text);
-      font-family: inherit; transition: border-color 0.14s;
-    }
-    .wo-hint-input:focus { outline: none; border-color: var(--accent); }
-    .wo-analyze-btn {
-      display: flex; align-items: center; gap: 8px;
-      background: var(--accent); color: #fff; border: none; border-radius: var(--r-md);
-      padding: 10px 22px; font-size: 0.95rem; font-weight: 700; cursor: pointer;
-      transition: background 0.14s, transform 0.1s; white-space: nowrap;
-    }
-    .wo-analyze-btn:hover:not(:disabled) { background: var(--accent-dark); transform: translateY(-1px); }
-    .wo-analyze-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-    /* ── Result card ── */
-    .wo-result { display: none; margin-bottom: 24px; }
-    .wo-result.visible { display: block; }
-    .wo-result-panel {
-      background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg);
-      padding: 28px; box-shadow: var(--shadow-sm);
-    }
-    .wo-result-top {
-      display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 24px;
-    }
-    .wo-exercise-block { flex: 1; min-width: 200px; }
-    .wo-exercise-name { font-size: 1.4rem; font-weight: 800; color: var(--text); margin: 0 0 6px; }
-    .wo-muscle-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-    .wo-muscle-tag {
-      font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
-      padding: 3px 9px; border-radius: 20px; background: var(--accent-light); color: var(--accent);
-    }
-    .wo-muscle-tag.secondary {
-      background: var(--panel-alt); color: var(--muted); border: 1px solid var(--line);
+    /* ───────────────────────────────────────────
+       PAGE SHELL
+    ─────────────────────────────────────────── */
+    .wo-page {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 44px 24px 120px;
     }
 
-    .wo-score-block { text-align: center; flex-shrink: 0; }
-    .wo-score-ring {
-      width: 96px; height: 96px; position: relative; margin: 0 auto 8px;
+    /* ───────────────────────────────────────────
+       HERO HEADER
+    ─────────────────────────────────────────── */
+    .wo-hero {
+      margin-bottom: 40px;
     }
-    .wo-score-ring svg { transform: rotate(-90deg); }
-    .wo-score-ring .ring-bg { fill: none; stroke: var(--line); stroke-width: 8; }
-    .wo-score-ring .ring-fill { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 0.8s cubic-bezier(0.16,1,0.3,1); }
-    .wo-score-num {
-      position: absolute; inset: 0; display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
+    .wo-hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
     }
-    .wo-score-val { font-size: 1.4rem; font-weight: 800; color: var(--text); line-height: 1; }
-    .wo-score-label { font-size: 0.65rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-    .wo-grade { font-size: 1rem; font-weight: 700; color: var(--accent); }
-    .wo-rep-count { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
-
-    /* ── Sections ── */
-    .wo-section { margin-bottom: 22px; }
-    .wo-section-title {
-      font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
-      color: var(--muted); margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+    .wo-hero h1 {
+      font-size: clamp(1.75rem, 4vw, 2.6rem);
+      font-weight: 800;
+      color: var(--text);
+      margin: 0 0 10px;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
     }
-    .wo-obs-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
-    .wo-obs-list li {
-      display: flex; gap: 10px; align-items: flex-start;
-      font-size: 0.9rem; color: var(--text); padding: 10px 12px;
-      background: var(--panel-alt); border-radius: var(--r-sm);
-    }
-    .wo-obs-icon { flex-shrink: 0; font-size: 1rem; }
-
-    .wo-issue-card {
-      background: var(--panel-alt); border-radius: var(--r-sm); padding: 12px 14px; margin-bottom: 10px;
-      border-left: 3px solid var(--muted);
-    }
-    .wo-issue-card.minor  { border-left-color: #f59e0b; }
-    .wo-issue-card.moderate { border-left-color: #ef4444; }
-    .wo-issue-card.major  { border-left-color: #dc2626; }
-    .wo-issue-header { display: flex; gap: 8px; align-items: center; margin-bottom: 5px; }
-    .wo-issue-name { font-weight: 700; font-size: 0.9rem; color: var(--text); }
-    .wo-severity-badge {
-      font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
-      padding: 2px 7px; border-radius: 20px;
-    }
-    .wo-severity-badge.minor    { background: rgba(245,158,11,0.15); color: #d97706; }
-    .wo-severity-badge.moderate { background: rgba(239,68,68,0.15);  color: #dc2626; }
-    .wo-severity-badge.major    { background: rgba(220,38,38,0.2);   color: #b91c1c; }
-    .wo-issue-cue { font-size: 0.83rem; color: var(--muted); margin: 0; }
-    .wo-cue-label { font-weight: 600; color: var(--accent); margin-right: 4px; }
-
-    .wo-safety-banner {
-      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25);
-      border-radius: var(--r-sm); padding: 12px 14px; display: flex; gap: 10px;
-      align-items: flex-start; font-size: 0.88rem; color: var(--text);
+    .wo-hero p {
+      color: var(--muted);
+      font-size: 0.97rem;
+      margin: 0;
+      max-width: 58ch;
+      line-height: 1.65;
     }
 
-    .wo-positive-list { display: flex; flex-wrap: wrap; gap: 8px; }
-    .wo-positive-tag {
-      background: rgba(34,197,94,0.12); color: #16a34a; border: 1px solid rgba(34,197,94,0.25);
-      border-radius: 20px; padding: 4px 12px; font-size: 0.82rem; font-weight: 600;
-    }
-    [data-theme="dark"] .wo-positive-tag { background: rgba(34,197,94,0.18); color: #4ade80; border-color: rgba(34,197,94,0.3); }
-
-    .wo-tip-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 7px; }
-    .wo-tip-list li { font-size: 0.88rem; color: var(--muted); display: flex; gap: 8px; }
-    .wo-tip-list li::before { content: '→'; color: var(--accent); flex-shrink: 0; }
-
-    /* ── AI Coach Chat ── */
-    .wo-chat-panel {
-      background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg);
-      overflow: hidden; box-shadow: var(--shadow-sm); display: none;
-    }
-    .wo-chat-panel.visible { display: flex; flex-direction: column; }
-    .wo-chat-header {
-      display: flex; align-items: center; gap: 12px;
-      padding: 16px 20px; border-bottom: 1px solid var(--line); background: var(--panel-alt);
-    }
-    .wo-chat-avatar {
-      width: 38px; height: 38px; border-radius: 50%; background: var(--accent);
-      display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;
-    }
-    .wo-chat-title { font-weight: 700; font-size: 0.95rem; color: var(--text); }
-    .wo-chat-sub   { font-size: 0.78rem; color: var(--muted); }
-    .wo-chat-messages {
-      padding: 18px 20px; display: flex; flex-direction: column; gap: 14px;
-      max-height: 420px; overflow-y: auto;
-    }
-    .wo-msg { display: flex; gap: 10px; }
-    .wo-msg--user { flex-direction: row-reverse; }
-    .wo-msg-bubble {
-      max-width: 80%; padding: 10px 14px; border-radius: 14px;
-      font-size: 0.88rem; line-height: 1.5; color: var(--text); background: var(--panel-alt);
-    }
-    .wo-msg--user .wo-msg-bubble { background: var(--accent); color: #fff; }
-    .wo-chat-input-row {
-      display: flex; gap: 10px; padding: 14px 16px;
-      border-top: 1px solid var(--line); background: var(--panel);
-    }
-    .wo-chat-input {
-      flex: 1; background: var(--panel-alt); border: 1.5px solid var(--line);
-      border-radius: var(--r-sm); padding: 9px 12px; font-size: 0.9rem;
-      color: var(--text); font-family: inherit; resize: none; transition: border-color 0.14s;
-    }
-    .wo-chat-input:focus { outline: none; border-color: var(--accent); }
-    .wo-chat-send {
-      background: var(--accent); color: #fff; border: none; border-radius: var(--r-sm);
-      padding: 9px 18px; font-size: 0.88rem; font-weight: 700; cursor: pointer;
-      transition: background 0.14s; white-space: nowrap;
-    }
-    .wo-chat-send:hover:not(:disabled) { background: var(--accent-dark); }
-    .wo-chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    /* ── Nav to workout plan ── */
-    .wo-plan-cta {
-      background: linear-gradient(135deg, var(--accent) 0%, #a855f7 100%);
-      border-radius: var(--r-lg); padding: 28px 32px; text-align: center; color: #fff;
+    /* ───────────────────────────────────────────
+       UPLOAD ZONE  (the star of the show)
+    ─────────────────────────────────────────── */
+    .wo-upload-card {
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
       margin-bottom: 28px;
     }
-    .wo-plan-cta h3 { font-size: 1.2rem; font-weight: 800; margin: 0 0 6px; }
-    .wo-plan-cta p  { font-size: 0.9rem; opacity: 0.88; margin: 0 0 18px; }
-    .wo-plan-cta a {
-      display: inline-block; background: #fff; color: var(--accent);
-      font-weight: 700; font-size: 0.93rem; padding: 10px 24px;
-      border-radius: var(--r-md); text-decoration: none; transition: opacity 0.15s;
-    }
-    .wo-plan-cta a:hover { opacity: 0.9; }
 
-    /* ── Loading overlay ── */
+    /* Idle state — full-bleed drop target */
+    .wo-drop-zone {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      min-height: 280px;
+      padding: 48px 32px;
+      cursor: pointer;
+      text-align: center;
+      background:
+        radial-gradient(ellipse 60% 50% at 50% 100%, rgba(91,76,245,0.08) 0%, transparent 70%);
+      transition: background 0.2s;
+    }
+    .wo-drop-zone::before {
+      content: '';
+      position: absolute;
+      inset: 12px;
+      border: 1.5px dashed rgba(91,76,245,0.22);
+      border-radius: 12px;
+      pointer-events: none;
+      transition: border-color 0.2s;
+    }
+    .wo-drop-zone.drag-over::before {
+      border-color: var(--accent);
+    }
+    .wo-drop-zone.drag-over {
+      background:
+        radial-gradient(ellipse 60% 50% at 50% 100%, rgba(91,76,245,0.14) 0%, transparent 70%);
+    }
+    .wo-drop-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    [data-theme="dark"] .wo-drop-zone::before {
+      border-color: rgba(124,111,247,0.2);
+    }
+    [data-theme="dark"] .wo-drop-zone.drag-over::before {
+      border-color: var(--accent);
+    }
+    [data-theme="dark"] .wo-drop-zone {
+      background: radial-gradient(ellipse 60% 50% at 50% 100%, rgba(124,111,247,0.1) 0%, transparent 70%);
+    }
+
+    /* Upload icon ring */
+    .wo-upload-ring {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: var(--accent-light);
+      border: 1px solid rgba(91,76,245,0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+      font-size: 1.8rem;
+    }
+    .wo-drop-zone:hover .wo-upload-ring,
+    .wo-drop-zone.drag-over .wo-upload-ring {
+      transform: scale(1.08);
+    }
+    [data-theme="dark"] .wo-upload-ring {
+      background: rgba(124,111,247,0.15);
+      border-color: rgba(124,111,247,0.25);
+    }
+
+    .wo-drop-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0 0 6px;
+      letter-spacing: -0.01em;
+    }
+    .wo-drop-sub {
+      font-size: 0.83rem;
+      color: var(--muted);
+      margin: 0 0 22px;
+      line-height: 1.55;
+    }
+    .wo-browse-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 9px 22px;
+      font-size: 0.86rem;
+      font-weight: 650;
+      font-family: var(--font);
+      cursor: pointer;
+      pointer-events: none; /* handled by invisible file input overlay */
+      transition: background 0.15s, transform 0.12s;
+      letter-spacing: -0.01em;
+    }
+    .wo-drop-zone:hover .wo-browse-btn {
+      background: var(--accent-dark);
+      transform: translateY(-1px);
+    }
+
+    /* ── Preview state (after file picked) ── */
+    .wo-preview-state { display: none; }
+    .wo-preview-state.visible { display: flex; flex-direction: column; }
+
+    .wo-video-wrap {
+      position: relative;
+      background: #000;
+      max-height: 420px;
+      overflow: hidden;
+    }
+    .wo-preview-video {
+      width: 100%;
+      max-height: 420px;
+      display: block;
+      object-fit: contain;
+    }
+
+    /* Thin accent bar under video */
+    .wo-video-accent {
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent) 0%, #a855f7 100%);
+    }
+
+    .wo-preview-controls {
+      padding: 18px 22px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .wo-file-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .wo-file-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .wo-file-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      background: var(--accent-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    [data-theme="dark"] .wo-file-icon {
+      background: rgba(124,111,247,0.16);
+    }
+    .wo-file-name {
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 280px;
+    }
+    .wo-file-size {
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+    .wo-change-btn {
+      flex-shrink: 0;
+      background: var(--panel-alt);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 7px 16px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      font-family: var(--font);
+      cursor: pointer;
+      transition: color 0.14s, border-color 0.14s;
+    }
+    .wo-change-btn:hover {
+      color: var(--text);
+      border-color: var(--muted);
+    }
+
+    /* Hint + analyze row */
+    .wo-action-row {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+    }
+    .wo-hint-input {
+      flex: 1;
+      background: var(--panel-alt);
+      border: 1.5px solid var(--line);
+      border-radius: var(--r-md);
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      color: var(--text);
+      font-family: var(--font);
+      transition: border-color 0.16s, box-shadow 0.16s;
+      min-width: 0;
+    }
+    .wo-hint-input::placeholder { color: var(--muted); opacity: 0.7; }
+    .wo-hint-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(91,76,245,0.1);
+    }
+    [data-theme="dark"] .wo-hint-input {
+      background: var(--panel-alt);
+      border-color: var(--line);
+    }
+    [data-theme="dark"] .wo-hint-input:focus {
+      box-shadow: 0 0 0 3px rgba(124,111,247,0.15);
+    }
+    .wo-analyze-btn {
+      flex-shrink: 0;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--r-md);
+      padding: 10px 22px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      font-family: var(--font);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: -0.01em;
+      transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+      box-shadow: 0 2px 12px rgba(91,76,245,0.28);
+    }
+    .wo-analyze-btn:hover:not(:disabled) {
+      background: var(--accent-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 18px rgba(91,76,245,0.38);
+    }
+    .wo-analyze-btn:active:not(:disabled) { transform: translateY(0); }
+    .wo-analyze-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* ───────────────────────────────────────────
+       LOADING STATE
+    ─────────────────────────────────────────── */
     .wo-loading {
-      display: none; flex-direction: column; align-items: center; gap: 14px;
-      padding: 48px 24px; text-align: center;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 60px 32px;
+      text-align: center;
+      background: var(--panel);
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      margin-bottom: 28px;
     }
     .wo-loading.visible { display: flex; }
-    .wo-loading-spinner {
-      width: 40px; height: 40px; border: 3px solid var(--line);
-      border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .wo-loading p { color: var(--muted); font-size: 0.9rem; margin: 0; }
 
-    @media (max-width: 600px) {
-      .wo-hero h1 { font-size: 1.5rem; }
-      .wo-result-top { flex-direction: column; }
-      .wo-score-block { display: flex; gap: 16px; align-items: center; }
-      .wo-score-ring { margin: 0; }
+    .wo-loading-orb {
+      position: relative;
+      width: 56px;
+      height: 56px;
+    }
+    .wo-loading-orb::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: var(--accent-light);
+    }
+    .wo-loading-orb::after {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      border-radius: 50%;
+      border: 2.5px solid transparent;
+      border-top-color: var(--accent);
+      border-right-color: var(--accent);
+      animation: wo-spin 0.75s linear infinite;
+    }
+    .wo-loading-orb-icon {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+    }
+    @keyframes wo-spin { to { transform: rotate(360deg); } }
+
+    .wo-loading h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0 0 4px;
+      letter-spacing: -0.01em;
+    }
+    .wo-loading p {
+      font-size: 0.83rem;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    /* Progress dots */
+    .wo-dots {
+      display: flex;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .wo-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: wo-bounce 1.2s ease-in-out infinite;
+    }
+    .wo-dot:nth-child(2) { animation-delay: 0.15s; }
+    .wo-dot:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes wo-bounce {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+      40%            { transform: scale(1);   opacity: 1; }
+    }
+
+    /* ───────────────────────────────────────────
+       RESULT CARD
+    ─────────────────────────────────────────── */
+    .wo-result { display: none; margin-bottom: 28px; }
+    .wo-result.visible { display: block; }
+
+    .wo-result-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    /* Score banner at the top */
+    .wo-score-banner {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 24px 28px;
+      background: var(--panel-alt);
+      border-bottom: 1px solid var(--line);
+      flex-wrap: wrap;
+    }
+    [data-theme="dark"] .wo-score-banner {
+      background: rgba(255,255,255,0.03);
+    }
+
+    .wo-score-ring {
+      position: relative;
+      width: 88px;
+      height: 88px;
+      flex-shrink: 0;
+    }
+    .wo-score-ring svg { transform: rotate(-90deg); display: block; }
+    .wo-ring-bg { fill: none; stroke: var(--line); stroke-width: 7; }
+    .wo-ring-fill {
+      fill: none;
+      stroke-width: 7;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1s cubic-bezier(0.16,1,0.3,1), stroke 0.4s;
+    }
+    .wo-score-num {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+    }
+    .wo-score-val {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    .wo-score-lbl {
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .wo-exercise-info { flex: 1; min-width: 0; }
+    .wo-ex-name {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.025em;
+      margin: 0 0 4px;
+    }
+    .wo-ex-meta {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin: 0 0 10px;
+    }
+    .wo-grade-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 10px;
+    }
+    .wo-grade-pill.grade-a { background: rgba(22,163,74,0.12); color: #15803d; }
+    .wo-grade-pill.grade-b { background: rgba(59,130,246,0.12); color: #1d4ed8; }
+    .wo-grade-pill.grade-c { background: rgba(245,158,11,0.13); color: #b45309; }
+    .wo-grade-pill.grade-d, .wo-grade-pill.grade-f { background: rgba(239,68,68,0.12); color: #b91c1c; }
+    [data-theme="dark"] .wo-grade-pill.grade-a { background: rgba(22,163,74,0.2); color: #4ade80; }
+    [data-theme="dark"] .wo-grade-pill.grade-b { background: rgba(59,130,246,0.18); color: #93c5fd; }
+    [data-theme="dark"] .wo-grade-pill.grade-c { background: rgba(245,158,11,0.18); color: #fbbf24; }
+    [data-theme="dark"] .wo-grade-pill.grade-d, [data-theme="dark"] .wo-grade-pill.grade-f { background: rgba(239,68,68,0.18); color: #fca5a5; }
+
+    .wo-muscle-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .wo-m-tag {
+      font-size: 0.71rem;
+      font-weight: 650;
+      letter-spacing: 0.01em;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--accent-light);
+      color: var(--accent);
+      border: 1px solid transparent;
+    }
+    .wo-m-tag.sec {
+      background: transparent;
+      color: var(--muted);
+      border-color: var(--line);
+    }
+
+    /* Body sections */
+    .wo-body { padding: 22px 28px; display: flex; flex-direction: column; gap: 0; }
+
+    .wo-section {
+      padding: 18px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .wo-section:last-child { border-bottom: none; padding-bottom: 0; }
+    .wo-section:first-child { padding-top: 0; }
+
+    .wo-section-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.7rem;
+      font-weight: 750;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    /* Safety banner */
+    .wo-safety-item {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      background: rgba(239,68,68,0.07);
+      border: 1px solid rgba(239,68,68,0.18);
+      border-radius: var(--r-md);
+      padding: 11px 14px;
+      font-size: 0.87rem;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .wo-safety-item:last-child { margin-bottom: 0; }
+
+    /* Issue cards */
+    .wo-issue {
+      display: grid;
+      grid-template-columns: 3px 1fr;
+      gap: 0 14px;
+      background: var(--panel-alt);
+      border-radius: var(--r-md);
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .wo-issue:last-child { margin-bottom: 0; }
+    .wo-issue-stripe { grid-row: 1 / 3; border-radius: 3px 0 0 3px; }
+    .wo-issue-stripe.minor    { background: #f59e0b; }
+    .wo-issue-stripe.moderate { background: #ef4444; }
+    .wo-issue-stripe.major    { background: #dc2626; }
+    .wo-issue-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 14px 4px 0;
+    }
+    .wo-issue-name { font-weight: 700; font-size: 0.88rem; color: var(--text); }
+    .wo-sev {
+      font-size: 0.63rem;
+      font-weight: 750;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 2px 7px;
+      border-radius: 999px;
+    }
+    .wo-sev.minor    { background: rgba(245,158,11,0.13); color: #b45309; }
+    .wo-sev.moderate { background: rgba(239,68,68,0.13); color: #b91c1c; }
+    .wo-sev.major    { background: rgba(220,38,38,0.18); color: #991b1b; }
+    [data-theme="dark"] .wo-sev.minor    { background: rgba(245,158,11,0.2); color: #fbbf24; }
+    [data-theme="dark"] .wo-sev.moderate { background: rgba(239,68,68,0.2); color: #fca5a5; }
+    [data-theme="dark"] .wo-sev.major    { background: rgba(220,38,38,0.25); color: #fca5a5; }
+    .wo-issue-cue {
+      padding: 0 14px 11px 0;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .wo-cue-kw { color: var(--accent); font-weight: 650; margin-right: 4px; }
+
+    /* Positives */
+    .wo-positives { display: flex; flex-wrap: wrap; gap: 8px; }
+    .wo-pos-tag {
+      background: rgba(22,163,74,0.09);
+      color: #15803d;
+      border: 1px solid rgba(22,163,74,0.2);
+      border-radius: 999px;
+      padding: 5px 13px;
+      font-size: 0.8rem;
+      font-weight: 650;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    [data-theme="dark"] .wo-pos-tag {
+      background: rgba(22,163,74,0.14);
+      color: #4ade80;
+      border-color: rgba(74,222,128,0.2);
+    }
+
+    /* Observations */
+    .wo-obs-item {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      font-size: 0.88rem;
+      color: var(--text);
+      padding: 9px 12px;
+      background: var(--panel-alt);
+      border-radius: var(--r-sm);
+      margin-bottom: 6px;
+    }
+    .wo-obs-item:last-child { margin-bottom: 0; }
+    .wo-obs-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      margin-top: 7px;
+    }
+
+    /* Breathing */
+    .wo-breathing-box {
+      background: rgba(91,76,245,0.05);
+      border: 1px solid rgba(91,76,245,0.12);
+      border-radius: var(--r-md);
+      padding: 12px 16px;
+      font-size: 0.88rem;
+      color: var(--text);
+      line-height: 1.6;
+    }
+    [data-theme="dark"] .wo-breathing-box {
+      background: rgba(124,111,247,0.08);
+      border-color: rgba(124,111,247,0.18);
+    }
+
+    /* Tips */
+    .wo-tip-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.87rem;
+      color: var(--muted);
+      margin-bottom: 7px;
+    }
+    .wo-tip-item:last-child { margin-bottom: 0; }
+    .wo-tip-arrow {
+      color: var(--accent);
+      font-size: 0.8rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+      font-weight: 700;
+    }
+
+    /* ───────────────────────────────────────────
+       AI COACH CHAT
+    ─────────────────────────────────────────── */
+    .wo-chat {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      display: none;
+      flex-direction: column;
+      margin-bottom: 28px;
+    }
+    .wo-chat.visible { display: flex; }
+
+    .wo-chat-hd {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 22px;
+      background: var(--panel-alt);
+      border-bottom: 1px solid var(--line);
+    }
+    [data-theme="dark"] .wo-chat-hd { background: rgba(255,255,255,0.03); }
+    .wo-chat-av {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent) 0%, #a855f7 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+      box-shadow: 0 2px 10px rgba(91,76,245,0.3);
+    }
+    .wo-chat-hd-text {}
+    .wo-chat-hd-title {
+      font-weight: 750;
+      font-size: 0.93rem;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+    .wo-chat-hd-sub {
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    .wo-chat-msgs {
+      padding: 20px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+    }
+    .wo-chat-msgs::-webkit-scrollbar { width: 4px; }
+    .wo-chat-msgs::-webkit-scrollbar-thumb {
+      background: var(--line);
+      border-radius: 2px;
+    }
+
+    .wo-msg { display: flex; gap: 10px; }
+    .wo-msg--user { flex-direction: row-reverse; }
+
+    .wo-bubble {
+      max-width: 78%;
+      padding: 10px 15px;
+      border-radius: 16px;
+      font-size: 0.87rem;
+      line-height: 1.55;
+      color: var(--text);
+      background: var(--panel-alt);
+    }
+    .wo-msg--user .wo-bubble {
+      background: var(--accent);
+      color: #fff;
+      border-radius: 16px 4px 16px 16px;
+    }
+    .wo-msg--assistant .wo-bubble {
+      border-radius: 4px 16px 16px 16px;
+    }
+
+    .wo-chat-ft {
+      display: flex;
+      gap: 10px;
+      padding: 14px 18px;
+      border-top: 1px solid var(--line);
+      background: var(--panel);
+    }
+    .wo-chat-in {
+      flex: 1;
+      background: var(--panel-alt);
+      border: 1.5px solid var(--line);
+      border-radius: var(--r-md);
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      color: var(--text);
+      font-family: var(--font);
+      resize: none;
+      transition: border-color 0.16s, box-shadow 0.16s;
+    }
+    .wo-chat-in::placeholder { color: var(--muted); opacity: 0.65; }
+    .wo-chat-in:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(91,76,245,0.1);
+    }
+    [data-theme="dark"] .wo-chat-in:focus {
+      box-shadow: 0 0 0 3px rgba(124,111,247,0.15);
+    }
+    .wo-chat-send {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--r-md);
+      padding: 10px 18px;
+      font-size: 0.86rem;
+      font-weight: 700;
+      font-family: var(--font);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.14s, transform 0.1s;
+      box-shadow: 0 2px 10px rgba(91,76,245,0.25);
+    }
+    .wo-chat-send:hover:not(:disabled) { background: var(--accent-dark); transform: translateY(-1px); }
+    .wo-chat-send:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+
+    /* ───────────────────────────────────────────
+       PLAN CTA BANNER
+    ─────────────────────────────────────────── */
+    .wo-cta {
+      position: relative;
+      overflow: hidden;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #3d2fd4 0%, #7c3aed 55%, #a855f7 100%);
+      padding: 32px 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+      box-shadow: 0 8px 32px rgba(91,76,245,0.3);
+    }
+    .wo-cta::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      pointer-events: none;
+    }
+    .wo-cta::after {
+      content: '';
+      position: absolute;
+      bottom: -60px; left: 30%;
+      width: 260px; height: 160px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+      pointer-events: none;
+    }
+    .wo-cta-text { position: relative; color: #fff; }
+    .wo-cta-text h3 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin: 0 0 5px;
+      letter-spacing: -0.02em;
+    }
+    .wo-cta-text p {
+      font-size: 0.87rem;
+      opacity: 0.82;
+      margin: 0;
+      max-width: 42ch;
+    }
+    .wo-cta-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.95);
+      color: var(--accent-dark);
+      font-weight: 750;
+      font-size: 0.88rem;
+      font-family: var(--font);
+      padding: 11px 22px;
+      border-radius: 999px;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: background 0.15s, transform 0.12s, box-shadow 0.15s;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+      letter-spacing: -0.01em;
+      flex-shrink: 0;
+    }
+    .wo-cta-btn:hover {
+      background: #fff;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.22);
+    }
+
+    /* ───────────────────────────────────────────
+       RESPONSIVE
+    ─────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .wo-page { padding: 28px 16px 80px; }
+      .wo-hero h1 { font-size: 1.6rem; }
+      .wo-score-banner { flex-direction: column; align-items: flex-start; gap: 16px; }
+      .wo-body { padding: 16px 18px; }
+      .wo-cta { padding: 24px 22px; }
+      .wo-action-row { flex-direction: column; }
+      .wo-preview-controls { padding: 14px 16px 16px; }
     }
   </style>
 </head>
@@ -243,452 +905,458 @@
         <a href="/workout-plan" class="nav-tab">Workout Plan</a>
         <a href="/contact" class="nav-tab">Contact</a>
       </nav>
-      <div class="nav-right"></div>
+      <div class="nav-right">
+        <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle dark mode">🌙</button>
+      </div>
     </div>
   </header>
 
-  <div class="wo-wrap">
+  <div class="wo-page">
 
     <!-- Hero -->
     <div class="wo-hero">
-      <h1>🏋️ Workout Form Analyzer</h1>
-      <p>Upload a video of any exercise. AI identifies the movement, muscle groups, rep count, and gives you detailed form feedback and coaching cues.</p>
+      <div class="wo-hero-eyebrow">
+        <span>💪</span> AI Form Analysis
+      </div>
+      <h1>Workout Form<br>Analyzer</h1>
+      <p>Drop a video of any lift or exercise. AI identifies the movement, muscle groups, rep count, and gives you frame-by-frame form feedback with coaching cues.</p>
     </div>
 
-    <!-- CTA to plan page -->
-    <div class="wo-plan-cta">
-      <h3>Want a custom program?</h3>
-      <p>Get a full personalized workout plan built around your goals, body metrics, and available equipment.</p>
-      <a href="/workout-plan">Generate My Plan →</a>
+    <!-- Plan CTA -->
+    <div class="wo-cta">
+      <div class="wo-cta-text">
+        <h3>Want a full training program?</h3>
+        <p>Generate a personalized multi-week plan built around your goals, body metrics, and equipment.</p>
+      </div>
+      <a href="/workout-plan" class="wo-cta-btn">Build My Plan →</a>
     </div>
 
-    <!-- Upload panel -->
-    <div class="wo-upload-panel">
-      <div class="wo-upload-zone" id="wo-upload-zone">
+    <!-- Upload card -->
+    <div class="wo-upload-card" id="wo-upload-card">
+
+      <!-- Drop zone (idle) -->
+      <div class="wo-drop-zone" id="wo-drop-zone">
         <input type="file" id="wo-file-input" accept="video/*" />
-        <span class="wo-upload-icon">🎥</span>
-        <h3>Drop your workout video here</h3>
-        <p>MP4, MOV, WebM — up to 100 MB &nbsp;·&nbsp; Film from the side for best results</p>
+        <div class="wo-upload-ring">🎥</div>
+        <div class="wo-drop-title">Drop your workout video</div>
+        <div class="wo-drop-sub">MP4 · MOV · WebM · up to 100 MB<br>Film from the side for best form analysis</div>
+        <div class="wo-browse-btn">Browse files</div>
       </div>
 
-      <div class="wo-preview-wrap" id="wo-preview-wrap">
-        <video class="wo-preview-video" id="wo-preview-video" controls playsinline muted></video>
-        <div class="wo-preview-meta">
-          <span class="wo-file-name" id="wo-file-name"></span>
-          <button class="wo-analyze-btn" id="wo-change-btn" style="background:var(--panel-alt);color:var(--text);border:1.5px solid var(--line);font-weight:600">↩ Change video</button>
+      <!-- Preview (after pick) -->
+      <div class="wo-preview-state" id="wo-preview-state">
+        <div class="wo-video-wrap">
+          <video class="wo-preview-video" id="wo-preview-video" controls playsinline muted></video>
         </div>
-        <div class="wo-hint-row">
-          <input class="wo-hint-input" id="wo-hint" type="text" placeholder="Optional hint — e.g. 'barbell squat, 3 reps'" maxlength="120" />
-          <button class="wo-analyze-btn" id="wo-analyze-btn">
-            <span id="wo-analyze-btn-text">⚡ Analyze Form</span>
-          </button>
+        <div class="wo-video-accent"></div>
+        <div class="wo-preview-controls">
+          <div class="wo-file-row">
+            <div class="wo-file-info">
+              <div class="wo-file-icon">🎬</div>
+              <div>
+                <div class="wo-file-name" id="wo-file-name">video.mp4</div>
+                <div class="wo-file-size" id="wo-file-size">0 MB</div>
+              </div>
+            </div>
+            <button class="wo-change-btn" id="wo-change-btn">↩ Change</button>
+          </div>
+          <div class="wo-action-row">
+            <input class="wo-hint-input" id="wo-hint" type="text"
+              placeholder="Optional hint — e.g. 'barbell back squat, 3 reps'" maxlength="120" />
+            <button class="wo-analyze-btn" id="wo-analyze-btn">
+              <span id="wo-analyze-txt">⚡ Analyze</span>
+            </button>
+          </div>
         </div>
       </div>
+
     </div>
 
     <!-- Loading -->
     <div class="wo-loading" id="wo-loading">
-      <div class="wo-loading-spinner"></div>
-      <p>Extracting frames and analyzing your form…</p>
-      <p style="font-size:0.78rem;opacity:0.6">This takes 10–20 seconds</p>
+      <div class="wo-loading-orb">
+        <div class="wo-loading-orb-icon">🏋️</div>
+      </div>
+      <div>
+        <h3>Analyzing your form…</h3>
+        <p>Extracting frames · classifying movement · scoring technique</p>
+      </div>
+      <div class="wo-dots">
+        <div class="wo-dot"></div>
+        <div class="wo-dot"></div>
+        <div class="wo-dot"></div>
+      </div>
     </div>
 
     <!-- Result -->
     <div class="wo-result" id="wo-result">
-      <div class="wo-result-panel">
+      <div class="wo-result-card">
 
-        <!-- Top: exercise + score -->
-        <div class="wo-result-top">
-          <div class="wo-exercise-block">
-            <div class="wo-exercise-name" id="res-exercise"></div>
-            <div style="font-size:0.8rem;color:var(--muted);margin:4px 0 0" id="res-reps"></div>
-            <div class="wo-muscle-tags" id="res-muscles"></div>
-          </div>
-          <div class="wo-score-block">
-            <div class="wo-score-ring" id="score-ring">
-              <svg viewBox="0 0 96 96" width="96" height="96">
-                <circle class="ring-bg" cx="48" cy="48" r="40"/>
-                <circle class="ring-fill" id="ring-fill" cx="48" cy="48" r="40"
-                  stroke-dasharray="251.2" stroke-dashoffset="251.2"/>
-              </svg>
-              <div class="wo-score-num">
-                <span class="wo-score-val" id="res-score">—</span>
-                <span class="wo-score-label">Form</span>
-              </div>
+        <!-- Score banner -->
+        <div class="wo-score-banner">
+          <div class="wo-score-ring" id="wo-score-ring">
+            <svg viewBox="0 0 88 88" width="88" height="88">
+              <circle class="wo-ring-bg" cx="44" cy="44" r="36"/>
+              <circle class="wo-ring-fill" id="wo-ring-fill" cx="44" cy="44" r="36"
+                stroke-dasharray="226.2" stroke-dashoffset="226.2"/>
+            </svg>
+            <div class="wo-score-num">
+              <span class="wo-score-val" id="res-score">—</span>
+              <span class="wo-score-lbl">Form</span>
             </div>
-            <div class="wo-grade" id="res-grade"></div>
+          </div>
+          <div class="wo-exercise-info">
+            <div class="wo-ex-name" id="res-exercise">—</div>
+            <div class="wo-ex-meta" id="res-reps"></div>
+            <div class="wo-grade-pill" id="res-grade-pill" style="display:none"></div>
+            <div class="wo-muscle-row" id="res-muscles"></div>
           </div>
         </div>
 
-        <!-- Safety flags -->
-        <div class="wo-section" id="safety-section" style="display:none">
-          <div class="wo-section-title">⚠️ Safety Flags</div>
-          <div id="res-safety"></div>
-        </div>
+        <!-- Sections -->
+        <div class="wo-body">
 
-        <!-- Form breakdowns -->
-        <div class="wo-section" id="issues-section" style="display:none">
-          <div class="wo-section-title">Form Breakdowns</div>
-          <div id="res-issues"></div>
-        </div>
+          <div class="wo-section" id="s-safety" style="display:none">
+            <div class="wo-section-label">⚠️ Safety Flags</div>
+            <div id="res-safety"></div>
+          </div>
 
-        <!-- Positive feedback -->
-        <div class="wo-section" id="positives-section" style="display:none">
-          <div class="wo-section-title">✅ What You're Doing Well</div>
-          <div class="wo-positive-list" id="res-positives"></div>
-        </div>
+          <div class="wo-section" id="s-issues" style="display:none">
+            <div class="wo-section-label">Form Breakdowns</div>
+            <div id="res-issues"></div>
+          </div>
 
-        <!-- Key observations -->
-        <div class="wo-section" id="obs-section" style="display:none">
-          <div class="wo-section-title">Key Observations</div>
-          <ul class="wo-obs-list" id="res-obs"></ul>
-        </div>
+          <div class="wo-section" id="s-pos" style="display:none">
+            <div class="wo-section-label">✅ What You're Nailing</div>
+            <div class="wo-positives" id="res-positives"></div>
+          </div>
 
-        <!-- Breathing -->
-        <div class="wo-section" id="breathing-section" style="display:none">
-          <div class="wo-section-title">Breathing &amp; Bracing</div>
-          <p style="font-size:0.9rem;color:var(--text);margin:0;padding:10px 12px;background:var(--panel-alt);border-radius:var(--r-sm)" id="res-breathing"></p>
-        </div>
+          <div class="wo-section" id="s-obs" style="display:none">
+            <div class="wo-section-label">Key Observations</div>
+            <div id="res-obs"></div>
+          </div>
 
-        <!-- Progression tips -->
-        <div class="wo-section" id="tips-section" style="display:none">
-          <div class="wo-section-title">Progression Tips</div>
-          <ul class="wo-tip-list" id="res-tips"></ul>
-        </div>
+          <div class="wo-section" id="s-breath" style="display:none">
+            <div class="wo-section-label">🫁 Breathing &amp; Bracing</div>
+            <div class="wo-breathing-box" id="res-breathing"></div>
+          </div>
 
+          <div class="wo-section" id="s-tips" style="display:none">
+            <div class="wo-section-label">Progression Tips</div>
+            <div id="res-tips"></div>
+          </div>
+
+        </div>
       </div>
     </div>
 
     <!-- AI Coach Chat -->
-    <div class="wo-chat-panel" id="wo-chat-panel">
-      <div class="wo-chat-header">
-        <div class="wo-chat-avatar">🏋️</div>
-        <div>
-          <div class="wo-chat-title">AI Form Coach</div>
-          <div class="wo-chat-sub">Ask follow-up questions about your form, technique, or programming</div>
+    <div class="wo-chat" id="wo-chat">
+      <div class="wo-chat-hd">
+        <div class="wo-chat-av">🏋️</div>
+        <div class="wo-chat-hd-text">
+          <div class="wo-chat-hd-title">AI Form Coach</div>
+          <div class="wo-chat-hd-sub">Ask follow-ups about your technique, fixes, or programming</div>
         </div>
       </div>
-      <div class="wo-chat-messages" id="wo-chat-messages">
+      <div class="wo-chat-msgs" id="wo-chat-msgs">
         <div class="wo-msg wo-msg--assistant">
-          <div class="wo-msg-bubble">I've analyzed your video. Ask me anything about your form, how to fix issues, what muscles to focus on, or how to progress. 💪</div>
+          <div class="wo-bubble">I've analyzed your video. Ask me anything about your form, how to fix issues, which muscles to focus on, or how to progress. 💪</div>
         </div>
       </div>
-      <div class="wo-chat-input-row">
-        <textarea class="wo-chat-input" id="wo-chat-input" rows="1" placeholder="Ask about your form, drills to fix issues, progressions…"></textarea>
+      <div class="wo-chat-ft">
+        <textarea class="wo-chat-in" id="wo-chat-in" rows="1"
+          placeholder="Ask about your form, drills to fix issues, progressions…"></textarea>
         <button class="wo-chat-send" id="wo-chat-send">Send</button>
       </div>
     </div>
 
-  </div>
+  </div><!-- .wo-page -->
 
   <script>
-  (function() {
-    const uploadZone   = document.getElementById('wo-upload-zone');
-    const fileInput    = document.getElementById('wo-file-input');
-    const previewWrap  = document.getElementById('wo-preview-wrap');
-    const previewVideo = document.getElementById('wo-preview-video');
-    const fileNameEl   = document.getElementById('wo-file-name');
-    const changeBtn    = document.getElementById('wo-change-btn');
-    const analyzeBtn   = document.getElementById('wo-analyze-btn');
-    const analyzeBtnTxt= document.getElementById('wo-analyze-btn-text');
-    const hintInput    = document.getElementById('wo-hint');
-    const loadingEl    = document.getElementById('wo-loading');
-    const resultEl     = document.getElementById('wo-result');
-    const chatPanel    = document.getElementById('wo-chat-panel');
+  (function () {
+    const dropZone    = document.getElementById('wo-drop-zone');
+    const fileInput   = document.getElementById('wo-file-input');
+    const previewState= document.getElementById('wo-preview-state');
+    const previewVideo= document.getElementById('wo-preview-video');
+    const fileNameEl  = document.getElementById('wo-file-name');
+    const fileSizeEl  = document.getElementById('wo-file-size');
+    const changeBtn   = document.getElementById('wo-change-btn');
+    const analyzeBtn  = document.getElementById('wo-analyze-btn');
+    const analyzeTxt  = document.getElementById('wo-analyze-txt');
+    const hintInput   = document.getElementById('wo-hint');
+    const loadingEl   = document.getElementById('wo-loading');
+    const resultEl    = document.getElementById('wo-result');
+    const chatEl      = document.getElementById('wo-chat');
 
-    let currentFile = null;
+    let currentFile  = null;
     let lastAnalysis = null;
     const chatHistory = [];
 
-    // ── Drag & drop ──
-    uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
-    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
-    uploadZone.addEventListener('drop', e => {
-      e.preventDefault(); uploadZone.classList.remove('drag-over');
+    /* ── Drag & drop ── */
+    dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault(); dropZone.classList.remove('drag-over');
       const f = e.dataTransfer.files[0];
       if (f && f.type.startsWith('video/')) setFile(f);
     });
     fileInput.addEventListener('change', () => { if (fileInput.files[0]) setFile(fileInput.files[0]); });
-    changeBtn.addEventListener('click', () => { resetState(); fileInput.value = ''; });
+    changeBtn.addEventListener('click',  () => { resetState(); fileInput.value = ''; });
 
     function setFile(file) {
       currentFile = file;
-      const url = URL.createObjectURL(file);
-      previewVideo.src = url;
-      fileNameEl.textContent = file.name + ' · ' + (file.size / 1024 / 1024).toFixed(1) + ' MB';
-      uploadZone.style.display = 'none';
-      previewWrap.classList.add('visible');
-      resultEl.classList.remove('visible');
-      chatPanel.classList.remove('visible');
-      loadingEl.classList.remove('visible');
+      previewVideo.src = URL.createObjectURL(file);
+      fileNameEl.textContent = file.name;
+      fileSizeEl.textContent = (file.size / 1024 / 1024).toFixed(1) + ' MB';
+      dropZone.style.display    = 'none';
+      previewState.classList.add('visible');
+      [resultEl, chatEl, loadingEl].forEach(el => {
+        el.classList.remove('visible');
+        el.style.display = '';
+      });
     }
 
     function resetState() {
       currentFile = null;
       previewVideo.src = '';
-      uploadZone.style.display = '';
-      previewWrap.classList.remove('visible');
+      dropZone.style.display = '';
+      previewState.classList.remove('visible');
       resultEl.classList.remove('visible');
-      chatPanel.classList.remove('visible');
+      chatEl.classList.remove('visible');
       loadingEl.classList.remove('visible');
     }
 
-    // ── Extract frames ──
-    function extractFrames(videoFile, count = 6) {
+    /* ── Frame extraction ── */
+    function extractFrames(file, count = 6) {
       return new Promise((resolve, reject) => {
-        const video = document.createElement('video');
-        video.muted = true;
-        video.src = URL.createObjectURL(videoFile);
-        video.addEventListener('error', reject);
-        video.addEventListener('loadedmetadata', () => {
-          const duration = video.duration;
-          const times = [];
-          for (let i = 0; i < count; i++) {
-            times.push((duration / (count + 1)) * (i + 1));
-          }
+        const vid = document.createElement('video');
+        vid.muted = true;
+        vid.src   = URL.createObjectURL(file);
+        vid.addEventListener('error', reject);
+        vid.addEventListener('loadedmetadata', () => {
+          const dur  = vid.duration;
+          const times = Array.from({ length: count }, (_, i) => (dur / (count + 1)) * (i + 1));
           const canvas = document.createElement('canvas');
           const frames = [];
           let idx = 0;
-
-          function captureNext() {
+          function next() {
             if (idx >= times.length) { resolve(frames); return; }
-            video.currentTime = times[idx];
+            vid.currentTime = times[idx];
           }
-          video.addEventListener('seeked', () => {
-            canvas.width  = Math.min(video.videoWidth,  720);
-            canvas.height = Math.min(video.videoHeight, 720);
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          vid.addEventListener('seeked', () => {
+            canvas.width  = Math.min(vid.videoWidth,  720);
+            canvas.height = Math.min(vid.videoHeight, 720);
+            canvas.getContext('2d').drawImage(vid, 0, 0, canvas.width, canvas.height);
             frames.push(canvas.toDataURL('image/jpeg', 0.82));
             idx++;
-            captureNext();
+            next();
           });
-          captureNext();
+          next();
         });
-        video.load();
+        vid.load();
       });
     }
 
-    // ── Analyze ──
+    /* ── Analyze ── */
     analyzeBtn.addEventListener('click', async () => {
       if (!currentFile) return;
       analyzeBtn.disabled = true;
-      analyzeBtnTxt.textContent = '⏳ Analyzing…';
+      analyzeTxt.textContent = '⏳ Analyzing…';
       loadingEl.classList.add('visible');
       resultEl.classList.remove('visible');
-      chatPanel.classList.remove('visible');
+      chatEl.classList.remove('visible');
 
       try {
         const frames = await extractFrames(currentFile, 6);
-        const body = { frameDataUrls: frames, description: hintInput.value.trim() };
         const res = await fetch('/api/analyze-workout', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ frameDataUrls: frames, description: hintInput.value.trim() }),
         });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.detail || `Server error ${res.status}`);
-        }
+        if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || `Error ${res.status}`);
         const data = await res.json();
         lastAnalysis = data;
         renderResult(data);
         openChat(data);
-      } catch(e) {
+      } catch (e) {
         alert('Analysis failed: ' + e.message);
       } finally {
         loadingEl.classList.remove('visible');
         analyzeBtn.disabled = false;
-        analyzeBtnTxt.textContent = '⚡ Analyze Form';
+        analyzeTxt.textContent = '⚡ Analyze';
       }
     });
 
-    // ── Render result ──
-    function scoreColor(score) {
-      if (score >= 85) return '#22c55e';
-      if (score >= 70) return '#f59e0b';
+    /* ── Render result ── */
+    function scoreColor(s) {
+      if (s >= 85) return '#22c55e';
+      if (s >= 70) return '#f59e0b';
       return '#ef4444';
+    }
+    function gradeClass(g) {
+      if (!g) return '';
+      const first = g[0].toUpperCase();
+      if (first === 'A') return 'grade-a';
+      if (first === 'B') return 'grade-b';
+      if (first === 'C') return 'grade-c';
+      return 'grade-d';
     }
 
     function renderResult(d) {
-      document.getElementById('res-exercise').textContent = d.exercise || 'Unknown Exercise';
-      document.getElementById('res-reps').textContent = d.repCount ? `${d.repCount} rep${d.repCount !== 1 ? 's' : ''} detected` : '';
-
-      // Muscles
-      const muscleEl = document.getElementById('res-muscles');
-      muscleEl.innerHTML = '';
-      (d.muscleGroups?.primary || []).forEach(m => {
-        const span = document.createElement('span');
-        span.className = 'wo-muscle-tag';
-        span.textContent = m;
-        muscleEl.appendChild(span);
-      });
-      (d.muscleGroups?.secondary || []).forEach(m => {
-        const span = document.createElement('span');
-        span.className = 'wo-muscle-tag secondary';
-        span.textContent = m;
-        muscleEl.appendChild(span);
-      });
-
-      // Score ring
+      /* score ring */
       const score = d.formScore || 0;
+      const circ  = 226.2;
       document.getElementById('res-score').textContent = score;
-      document.getElementById('res-grade').textContent = d.formGrade || '';
-      const circumference = 251.2;
-      const offset = circumference - (score / 100) * circumference;
-      const ring = document.getElementById('ring-fill');
-      ring.style.stroke = scoreColor(score);
-      ring.style.strokeDashoffset = circumference;
-      setTimeout(() => { ring.style.strokeDashoffset = offset; }, 100);
+      const ring = document.getElementById('wo-ring-fill');
+      ring.style.stroke           = scoreColor(score);
+      ring.style.strokeDashoffset = circ;
+      setTimeout(() => { ring.style.strokeDashoffset = circ - (score / 100) * circ; }, 80);
 
-      // Safety
-      const safety = d.safetyFlags || [];
-      const safetySection = document.getElementById('safety-section');
-      if (safety.length) {
-        safetySection.style.display = '';
-        document.getElementById('res-safety').innerHTML = safety.map(s =>
-          `<div class="wo-safety-banner">⚠️ <span>${esc(s)}</span></div>`
-        ).join('');
+      /* exercise + meta */
+      document.getElementById('res-exercise').textContent = d.exercise || '—';
+      document.getElementById('res-reps').textContent =
+        d.repCount ? `${d.repCount} rep${d.repCount !== 1 ? 's' : ''} detected` : '';
+
+      /* grade pill */
+      const gradePill = document.getElementById('res-grade-pill');
+      if (d.formGrade) {
+        gradePill.style.display = 'inline-flex';
+        gradePill.className     = 'wo-grade-pill ' + gradeClass(d.formGrade);
+        gradePill.textContent   = d.formGrade;
       } else {
-        safetySection.style.display = 'none';
+        gradePill.style.display = 'none';
       }
 
-      // Issues
-      const issues = d.formBreakdowns || [];
-      const issuesSection = document.getElementById('issues-section');
-      if (issues.length) {
-        issuesSection.style.display = '';
-        document.getElementById('res-issues').innerHTML = issues.map(i => `
-          <div class="wo-issue-card ${esc(i.severity||'minor')}">
-            <div class="wo-issue-header">
-              <span class="wo-issue-name">${esc(i.issue||'')}</span>
-              <span class="wo-severity-badge ${esc(i.severity||'minor')}">${esc(i.severity||'minor')}</span>
-            </div>
-            <p class="wo-issue-cue"><span class="wo-cue-label">Cue:</span>${esc(i.cue||'')}</p>
-          </div>`).join('');
-      } else {
-        issuesSection.style.display = 'none';
-      }
+      /* muscles */
+      const mRow = document.getElementById('res-muscles');
+      mRow.innerHTML = '';
+      (d.muscleGroups?.primary   || []).forEach(m => mRow.appendChild(tag(m, false)));
+      (d.muscleGroups?.secondary || []).forEach(m => mRow.appendChild(tag(m, true)));
 
-      // Positives
-      const positives = d.positiveFeedback || [];
-      const posSection = document.getElementById('positives-section');
-      if (positives.length) {
-        posSection.style.display = '';
-        document.getElementById('res-positives').innerHTML = positives.map(p =>
-          `<span class="wo-positive-tag">✓ ${esc(p)}</span>`
-        ).join('');
-      } else {
-        posSection.style.display = 'none';
-      }
+      /* safety */
+      show('s-safety', (d.safetyFlags || []).length > 0);
+      document.getElementById('res-safety').innerHTML =
+        (d.safetyFlags || []).map(s => `<div class="wo-safety-item">⚠️ <span>${esc(s)}</span></div>`).join('');
 
-      // Observations
-      const obs = d.keyObservations || [];
-      const obsSection = document.getElementById('obs-section');
-      if (obs.length) {
-        obsSection.style.display = '';
-        document.getElementById('res-obs').innerHTML = obs.map(o =>
-          `<li><span class="wo-obs-icon">•</span>${esc(o)}</li>`
-        ).join('');
-      } else {
-        obsSection.style.display = 'none';
-      }
+      /* issues */
+      show('s-issues', (d.formBreakdowns || []).length > 0);
+      document.getElementById('res-issues').innerHTML = (d.formBreakdowns || []).map(i => `
+        <div class="wo-issue">
+          <div class="wo-issue-stripe ${esc(i.severity||'minor')}"></div>
+          <div class="wo-issue-head">
+            <span class="wo-issue-name">${esc(i.issue||'')}</span>
+            <span class="wo-sev ${esc(i.severity||'minor')}">${esc(i.severity||'minor')}</span>
+          </div>
+          <div class="wo-issue-cue"><span class="wo-cue-kw">Cue:</span>${esc(i.cue||'')}</div>
+        </div>`).join('');
 
-      // Breathing
-      const breathing = d.breathingCue;
-      const breathSection = document.getElementById('breathing-section');
-      if (breathing) {
-        breathSection.style.display = '';
-        document.getElementById('res-breathing').textContent = breathing;
-      } else {
-        breathSection.style.display = 'none';
-      }
+      /* positives */
+      show('s-pos', (d.positiveFeedback || []).length > 0);
+      document.getElementById('res-positives').innerHTML =
+        (d.positiveFeedback || []).map(p =>
+          `<span class="wo-pos-tag">✓ ${esc(p)}</span>`).join('');
 
-      // Tips
-      const tips = d.progressionTips || [];
-      const tipsSection = document.getElementById('tips-section');
-      if (tips.length) {
-        tipsSection.style.display = '';
-        document.getElementById('res-tips').innerHTML = tips.map(t =>
-          `<li>${esc(t)}</li>`
-        ).join('');
-      } else {
-        tipsSection.style.display = 'none';
-      }
+      /* observations */
+      show('s-obs', (d.keyObservations || []).length > 0);
+      document.getElementById('res-obs').innerHTML =
+        (d.keyObservations || []).map(o =>
+          `<div class="wo-obs-item"><div class="wo-obs-dot"></div><span>${esc(o)}</span></div>`).join('');
+
+      /* breathing */
+      show('s-breath', !!d.breathingCue);
+      document.getElementById('res-breathing').textContent = d.breathingCue || '';
+
+      /* tips */
+      show('s-tips', (d.progressionTips || []).length > 0);
+      document.getElementById('res-tips').innerHTML =
+        (d.progressionTips || []).map(t =>
+          `<div class="wo-tip-item"><span class="wo-tip-arrow">→</span><span>${esc(t)}</span></div>`).join('');
 
       resultEl.classList.add('visible');
     }
 
-    // ── Chat ──
-    function openChat(analysis) {
-      chatPanel.classList.add('visible');
-      // Reset chat with greeting
-      const msgs = document.getElementById('wo-chat-messages');
-      msgs.innerHTML = `<div class="wo-msg wo-msg--assistant"><div class="wo-msg-bubble">I analyzed your <strong>${esc(analysis.exercise || 'exercise')}</strong> — form score <strong>${analysis.formScore || '?'}/100</strong>. Ask me anything about your technique, how to fix the issues, progressions, or anything else about your training. 💪</div></div>`;
-      chatHistory.length = 0;
+    function tag(name, secondary) {
+      const span = document.createElement('span');
+      span.className = 'wo-m-tag' + (secondary ? ' sec' : '');
+      span.textContent = name;
+      return span;
+    }
+    function show(id, visible) {
+      document.getElementById(id).style.display = visible ? '' : 'none';
     }
 
-    function appendChatMsg(role, text) {
-      const msgs = document.getElementById('wo-chat-messages');
-      const div = document.createElement('div');
+    /* ── Chat ── */
+    function openChat(d) {
+      chatEl.classList.add('visible');
+      const msgs = document.getElementById('wo-chat-msgs');
+      msgs.innerHTML = `<div class="wo-msg wo-msg--assistant"><div class="wo-bubble">I analyzed your <strong>${esc(d.exercise||'exercise')}</strong> — form score <strong>${d.formScore||'?'}/100</strong>. Ask me anything about your technique, how to fix the issues, progressions, or anything training-related. 💪</div></div>`;
+      chatHistory.length = 0;
+      chatEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function appendMsg(role, text) {
+      const msgs = document.getElementById('wo-chat-msgs');
+      const div  = document.createElement('div');
       div.className = `wo-msg wo-msg--${role}`;
-      div.innerHTML = `<div class="wo-msg-bubble">${text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div>`;
+      div.innerHTML = `<div class="wo-bubble">${text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div>`;
       msgs.appendChild(div);
       msgs.scrollTop = msgs.scrollHeight;
     }
 
-    async function sendChatMessage() {
-      const input = document.getElementById('wo-chat-input');
-      const sendBtn = document.getElementById('wo-chat-send');
-      const text = input.value.trim();
+    async function sendMsg() {
+      const inp  = document.getElementById('wo-chat-in');
+      const send = document.getElementById('wo-chat-send');
+      const text = inp.value.trim();
       if (!text) return;
-      input.value = '';
-      input.style.height = '';
-      appendChatMsg('user', text);
+      inp.value = ''; inp.style.height = '';
+      appendMsg('user', text);
       chatHistory.push({ role: 'user', content: text });
-      sendBtn.disabled = true;
-      sendBtn.textContent = '…';
+      send.disabled = true; send.textContent = '…';
 
       try {
-        const res = await fetch('/api/chat-workout', {
+        const res  = await fetch('/api/chat-workout', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            messages: chatHistory,
-            analysisContext: lastAnalysis ? JSON.stringify(lastAnalysis) : '',
-          }),
+          body: JSON.stringify({ messages: chatHistory, analysisContext: lastAnalysis ? JSON.stringify(lastAnalysis) : '' }),
         });
         const data = await res.json();
-        const reply = data.reply || 'Sorry, I couldn\'t get a response.';
-        appendChatMsg('assistant', reply);
+        const reply = data.reply || 'Sorry, no response.';
+        appendMsg('assistant', reply);
         chatHistory.push({ role: 'assistant', content: reply });
-      } catch {
-        appendChatMsg('assistant', 'Something went wrong. Please try again.');
-      } finally {
-        sendBtn.disabled = false;
-        sendBtn.textContent = 'Send';
-        input.focus();
-      }
+      } catch { appendMsg('assistant', 'Something went wrong. Try again.'); }
+      finally { send.disabled = false; send.textContent = 'Send'; }
     }
 
-    document.getElementById('wo-chat-send').addEventListener('click', sendChatMessage);
-    document.getElementById('wo-chat-input').addEventListener('keydown', e => {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
+    document.getElementById('wo-chat-send').addEventListener('click', sendMsg);
+    document.getElementById('wo-chat-in').addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
     });
-    document.getElementById('wo-chat-input').addEventListener('input', function() {
+    document.getElementById('wo-chat-in').addEventListener('input', function () {
       this.style.height = '';
       this.style.height = Math.min(this.scrollHeight, 120) + 'px';
     });
 
-    function esc(s) {
-      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    }
+    function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   })();
   </script>
 
-  <!-- Theme -->
   <script>
-    (function() {
+    (function () {
+      const btn  = document.getElementById('theme-toggle');
       const html = document.documentElement;
-      // No theme toggle button on this page — handled via localStorage on load
+      if (localStorage.getItem('ct_theme') === 'dark') btn.textContent = '☀️';
+      btn.addEventListener('click', () => {
+        const dark = html.getAttribute('data-theme') === 'dark';
+        if (dark) {
+          html.removeAttribute('data-theme');
+          btn.textContent = '🌙';
+          localStorage.setItem('ct_theme', 'light');
+        } else {
+          html.setAttribute('data-theme', 'dark');
+          btn.textContent = '☀️';
+          localStorage.setItem('ct_theme', 'dark');
+        }
+      });
     })();
   </script>
 </body>
