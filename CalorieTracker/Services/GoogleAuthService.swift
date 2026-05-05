@@ -9,7 +9,9 @@ final class GoogleAuthService: ObservableObject {
 
     init() {
         GIDSignIn.sharedInstance.restorePreviousSignIn { [weak self] user, _ in
-            self?.currentUser = user
+            Task { @MainActor [weak self] in
+                self?.currentUser = user
+            }
         }
     }
 

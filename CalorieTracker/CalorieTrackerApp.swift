@@ -7,15 +7,17 @@ struct CalorieTrackerApp: App {
 
     var body: some Scene {
         WindowGroup {
-            if auth.currentUser != nil {
-                ContentView()
-                    .environmentObject(auth)
-            } else {
-                GoogleSignInView(auth: auth)
+            Group {
+                if auth.currentUser != nil {
+                    ContentView()
+                        .environmentObject(auth)
+                } else {
+                    GoogleSignInView(auth: auth)
+                }
             }
-        }
-        .onOpenURL { url in
-            auth.handle(url)
+            .onOpenURL { url in
+                auth.handle(url)
+            }
         }
     }
 }
