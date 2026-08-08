@@ -55,7 +55,14 @@ photoInput.addEventListener("change", async (event) => {
   const file = event.target.files?.[0];
   if (!file) return;
   if (!file.type.startsWith("image/")) { setStatus("Please choose an image file."); return; }
-  imageDataUrl = await fileToDataUrl(file);
+  setStatus("Preparing photo...");
+  try {
+    const rawDataUrl = await fileToDataUrl(file);
+    imageDataUrl = await compressImage(rawDataUrl);
+  } catch (error) {
+    setStatus(error.message || "Could not read that photo.");
+    return;
+  }
   previewImage.src = imageDataUrl;
   previewShell.hidden = false;
   syncButtons();
@@ -88,7 +95,7 @@ analyzeButton.addEventListener("click", async () => {
         body: JSON.stringify({ description }),
       });
     }
-    const payload = await response.json();
+    const payload = await readResponse(response);
     if (!response.ok) throw new Error(payload.detail || "Analysis failed.");
     currentResult = payload;
     renderResult(payload);
@@ -147,6 +154,38 @@ function fileToDataUrl(file) {
     reader.onerror = () => reject(new Error("Could not read that file."));
     reader.readAsDataURL(file);
   });
+}
+
+// Phone-camera photos can be several MB, which blows past the server's
+// upload limit. Downscale/recompress on the client so every upload stays
+// small, regardless of the original resolution.
+function compressImage(dataUrl, maxDimension = 1600, quality = 0.85) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const ratio = Math.min(1, maxDimension / Math.max(img.width, img.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.width * ratio);
+      canvas.height = Math.round(img.height * ratio);
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = () => reject(new Error("Could not read that image."));
+    img.src = dataUrl;
+  });
+}
+
+async function readResponse(response) {
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(
+      response.ok
+        ? "Server sent back something unexpected. Please try again."
+        : "Image is too large or the server rejected the request. Try a smaller photo."
+    );
+  }
 }
 
 function createThumbnail(dataUrl) {
