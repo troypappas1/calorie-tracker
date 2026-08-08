@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -c static/app.js)",
+      "Bash(python3 -c \"import ast; print\\('n/a'\\)\")",
+      "Bash(python3 -m venv /tmp/ct-venv)",
+      "Bash(/tmp/ct-venv/bin/pip install *)",
+      "Bash(PORT=8010 /tmp/ct-venv/bin/python3 app.py)",
+      "Bash(disown)",
+      "Bash(curl -s http://localhost:8010/api/health)",
+      "Bash(python3 -c ' *)",
+      "Bash(/tmp/ct-venv/bin/python3 -c ' *)",
+      "Bash(which chromium-cli *)",
+      "Read(//Applications/**)",
+      "Bash(/tmp/ct-venv/bin/python3 -m playwright install chromium)",
+      "Bash(/tmp/ct-venv/bin/python3 /private/tmp/claude-504/-Users-KellyHome-calorie-tracker/f7a78573-0fdb-4578-a382-470f3c2a685c/scratchpad/test_upload.py)",
+      "Bash(kill %1)",
+      "Bash(jobs -l)",
+      "Bash(pkill -f \"app.py\")",
+      "Bash(git revert *)"
+    ]
+  }
+}
