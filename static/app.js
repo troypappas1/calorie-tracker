@@ -46,7 +46,14 @@ photoInput.addEventListener("change", async (event) => {
   if (!file) return;
   if (!file.type.startsWith("image/")) { setStatus("Please choose an image file."); return; }
   if (file.size > 20 * 1024 * 1024) { setStatus("Image is too large. Please choose a file under 20 MB."); return; }
-  imageDataUrl = await fileToDataUrl(file);
+  setStatus("Preparing photo...");
+  try {
+    const rawDataUrl = await fileToDataUrl(file);
+    imageDataUrl = await compressImage(rawDataUrl);
+  } catch (error) {
+    setStatus(error.message || "Could not read that photo.");
+    return;
+  }
   previewImage.src = imageDataUrl;
   previewShell.hidden = false;
   syncButtons();
@@ -83,7 +90,7 @@ analyzeButton.addEventListener("click", async () => {
       });
     }
 
-    const payload = await response.json();
+    const payload = await readResponse(response);
     if (!response.ok) throw new Error(payload.detail || "Analysis failed.");
     currentResult = payload;
     renderResult(payload);
@@ -186,6 +193,38 @@ function fileToDataUrl(file) {
     reader.onerror = () => reject(new Error("Could not read that file."));
     reader.readAsDataURL(file);
   });
+}
+
+// Phone-camera photos can be several MB, which exceeds the server's
+// upload limit. Downscale/recompress on the client so every upload stays
+// small, regardless of the original resolution.
+function compressImage(dataUrl, maxDimension = 1600, quality = 0.85) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const ratio = Math.min(1, maxDimension / Math.max(img.width, img.height));
+      const canvas = document.createElement("canvas");
+      canvas.width  = Math.round(img.width  * ratio);
+      canvas.height = Math.round(img.height * ratio);
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = () => reject(new Error("Could not read that image."));
+    img.src = dataUrl;
+  });
+}
+
+async function readResponse(response) {
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(
+      response.ok
+        ? "Server sent back something unexpected. Please try again."
+        : "Image is too large or the server rejected the request. Try a smaller photo."
+    );
+  }
 }
 
 function createThumbnail(dataUrl) {
@@ -311,7 +350,14 @@ bevPhotoInput.addEventListener('change', async (e) => {
   if (!file) return;
   if (!file.type.startsWith('image/')) { bevStatusText.textContent = 'Please choose an image file.'; return; }
   if (file.size > 20 * 1024 * 1024) { bevStatusText.textContent = 'Image too large — keep it under 20 MB.'; return; }
-  bevImageDataUrl = await fileToDataUrl(file);
+  bevStatusText.textContent = 'Preparing photo...';
+  try {
+    const rawDataUrl = await fileToDataUrl(file);
+    bevImageDataUrl = await compressImage(rawDataUrl);
+  } catch (error) {
+    bevStatusText.textContent = error.message || 'Could not read that photo.';
+    return;
+  }
   bevPreviewImage.src = bevImageDataUrl;
   bevPreviewShell.hidden = false;
   syncBevButtons();
@@ -340,7 +386,7 @@ bevAnalyzeBtn.addEventListener('click', async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ imageDataUrl: bevImageDataUrl, description: desc }),
     });
-    const data = await res.json();
+    const data = await readResponse(res);
     if (!res.ok) throw new Error(data.detail || 'Analysis failed.');
     bevCurrentResult = data;
     renderBevResult(data);
