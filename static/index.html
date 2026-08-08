@@ -28,6 +28,7 @@
           </svg>
           Sign in with Google
         </button>
+        <button id="intro-guest-btn" class="intro-guest-continue-btn">Continue without an account</button>
         <a href="/signup" class="intro-guest-btn">Don't have an account? Sign up →</a>
       </div>
     </div>
@@ -594,23 +595,50 @@
     const chipAvatar = document.getElementById('chip-avatar');
     const chipName   = document.getElementById('chip-name');
     const signBtn    = document.getElementById('home-sign-in-btn');
+    const guestBtn   = document.getElementById('intro-guest-btn');
+    const ddSignout  = document.getElementById('dd-signout');
+    const GUEST_KEY  = 'ct_guest';
+
+    function revealApp() {
+      intro.remove();
+      document.getElementById('global-nav').style.visibility = 'visible';
+      document.getElementById('main-content').style.visibility = 'visible';
+    }
 
     function dismissIntro() {
       intro.classList.add('intro-exit');
-      setTimeout(() => {
-        intro.remove();
-        document.getElementById('global-nav').style.visibility = 'visible';
-        document.getElementById('main-content').style.visibility = 'visible';
-      }, 500);
+      setTimeout(revealApp, 500);
     }
 
     function showUser(user) {
       menuWrap.hidden = false;
       signBtn.hidden  = true;
+      ddSignout.style.display = '';
       chipAvatar.src = user.photoURL || '';
       chipAvatar.style.display = user.photoURL ? 'block' : 'none';
       chipName.textContent = (user.displayName || user.email || '').split(' ')[0];
     }
+
+    // Everything is saved to this browser's local storage regardless of
+    // sign-in state; Firebase (when configured) only adds optional
+    // cross-device sync on top of that.
+    function showGuest() {
+      menuWrap.hidden = false;
+      chipAvatar.style.display = 'none';
+      chipName.textContent = 'Guest';
+      ddSignout.style.display = 'none';
+      signBtn.hidden = !FIREBASE_ENABLED;
+    }
+
+    function continueAsGuest() {
+      localStorage.setItem(GUEST_KEY, '1');
+      sessionStorage.setItem('ct-authed', '1');
+      showGuest();
+      dismissIntro();
+    }
+    guestBtn.addEventListener('click', continueAsGuest);
+
+    const isReturningGuest = localStorage.getItem(GUEST_KEY) === '1';
 
     // Theme item inside dropdown
     (function() {
@@ -668,8 +696,13 @@
         try { await setDoc(doc(db, 'users', user.uid, 'profile', 'data'), profile); } catch {}
       };
 
-      // Force sign-in on fresh visits, but not when navigating within the app.
-      if (!sessionStorage.getItem('ct-authed')) {
+      // Returning guests skip straight in — no Firebase round-trip needed.
+      // Otherwise, force sign-in on fresh visits, but not when navigating
+      // within the app.
+      if (isReturningGuest) {
+        showGuest();
+        revealApp();
+      } else if (!sessionStorage.getItem('ct-authed')) {
         await signOut(auth).catch(() => {});
         intro.style.visibility = 'visible';
       } else {
@@ -678,6 +711,7 @@
 
       onAuthStateChanged(auth, async (user) => {
         if (user) {
+          localStorage.removeItem(GUEST_KEY);
           sessionStorage.setItem('ct-authed', '1');
           showUser(user);
           dismissIntro();
@@ -705,7 +739,13 @@
 
     } else {
       signBtn.hidden = true;
-      document.getElementById('dd-signout').style.display = 'none';
+      ddSignout.style.display = 'none';
+      if (isReturningGuest || sessionStorage.getItem('ct-authed')) {
+        showGuest();
+        revealApp();
+      } else {
+        intro.style.visibility = 'visible';
+      }
     }
   </script>
 

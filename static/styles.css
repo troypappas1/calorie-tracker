@@ -1161,6 +1161,29 @@ button:active:not(:disabled) { transform: translateY(1px); }
   background: rgba(255,255,255,0.05);
 }
 
+.intro-guest-continue-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.08);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 10px;
+  color: rgba(255,255,255,0.85);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 12px 24px;
+  width: 100%;
+  max-width: 300px;
+  transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.15s;
+}
+.intro-guest-continue-btn:hover {
+  border-color: rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.14);
+  transform: translateY(-1px);
+}
+.intro-guest-continue-btn:active { transform: translateY(0); }
+
 .intro-signup-link {
   margin: 0;
   font-size: 0.86rem;
